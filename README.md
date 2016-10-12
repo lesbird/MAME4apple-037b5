@@ -19,14 +19,14 @@ The project is full 64-bit compliant and has been tested on iPhone 6s, iPad Air 
 Front end is minimal at the moment. Scroll through a list of games, select one to play.
 
 What's working:
-All "supported" MAME4ALL games are working (although I have not tested all 2000+ games yet)
-Framerate for games I tested so far is smooth
-Audio works but is not perfect
-Graphics work for all tested games but some games do not display properly (scaling to fit screen dimensions)
+All "supported" MAME4ALL games are working (although I have not tested all 2000+ games yet).
+Framerate for games I tested so far is smooth.
+Audio works but is not perfect.
+Graphics work for all tested games but some games do not display properly (scaling to fit screen dimensions).
 
 What's not working:
-Artwork overlays aren't working yet
-iCade not supported yet
-Touch controls not supported yet
+Artwork overlays aren't working yet.
+iCade not supported yet.
+Touch controls not supported yet.
 No MAME.CFG file supported.
 Vector graphics beam width can not be scaled yet.
