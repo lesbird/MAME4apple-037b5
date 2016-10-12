@@ -1,0 +1,577 @@
+0.37 BETA 5
+
+
+These drivers have improved GRAPHICS:
+-------------------------------------
+
+- Fixed black blobs in Carrier Air Wing. [Nicola Salmoria]
+
+- Fixed multiple beer trucks in Cops 'n Robbers [Colin Douglas Howell]
+
+
+Other drivers changes:
+----------------------
+
+- Complete rewrite of the 34010 drivers. [Aaron Giles]
+
+- Fixed protection in Slam Masters. [Nicola Salmoria]
+
+- Lots of improvements to the Taito F2 driver. [David Graves]
+
+- Fixed Terminator 2 crashes. [Ernesto Corvi]
+
+
+Source:
+-------
+
+- New video flag VIDEO_NEEDS_6BITS_PER_GUN to indicate to the OS dependant
+  layer that a 16-bit display is not enough to reproduce the whole game's
+  palette and a 24-bit display is preferred.
+
+- Support for compressed PCM playback in the C140 emulator. [CAB]
+
+- YMZ280B sound emulation, used by the Cave games. [Aaron Giles]
+
+- ADSP2105 cpu emulation, used by Mortal Kombat 2 sound. [Ernesto Corvi]
+
+- New functions in cpuintrf.c: cpu_get/set_cycle_table(),
+  cpu_set_irq_callback(). [Juergen Buchmueller]
+
+- New cpu cores and fixes to old ones. [Juergen Buchmueller]
+
+- New graphic primitive copyrozbitmap(). This replaces copybitmapzoom() which
+  was a special case.
+  A side effect is that, thanks to the better precision, the boxer on the
+  Punch Out hall of fame looks much better. [Nicola Salmoria]
+
+- Abstracted Taito F2 gfx chip emulation to vidhrdw/taitoic.c (there's also
+  some non-gfx chips in there). There are many other Taito games using these
+  chips. [Nicola Salmoria]
+
+
+New games supported:
+--------------------
+
+Final StarForce [E. Watanabe]
+Ganbare Ginkun [E. Watanabe]
+Dodonpachi [Luca Elia]
+Sengoku Ace [Luca Elia]
+Gun Bird [Luca Elia]
+Caliber 50 [Luca Elia]
+Dragon Unit [Luca Elia]
+Blandia [Luca Elia]
+Shanghai 3 [Nicola Salmoria]
+Hebereke no Popoon [Nicola Salmoria]
+Blocken [Nicola Salmoria]
+LSA Squad [Nicola Salmoria]
+Oli-Boo-Chu [Nicola Salmoria]
+TT Mahjong [Takahiro Nogi, PongKang]
+Royal Mahjong [Zsolt Vasvari]
+Gun Frontier [David Graves, Nicola Salmoria]
+Ah Eikou no Koshien [David Graves, Nicola Salmoria]
+Thunder Fox [David Graves, Nicola Salmoria]
+Ninja Kids [David Graves, Nicola Salmoria]
+Solitary Fighter [David Graves, Nicola Salmoria]
+Dino Rex [David Graves, Nicola Salmoria]
+Quiz Chikyu Bouei Gun [David Graves, Nicola Salmoria]
+Quiz Torimonochou [David Graves, Nicola Salmoria]
+Quiz HQ [David Graves, Nicola Salmoria]
+Yuuyu no Quiz de GO!GO! [David Graves, Nicola Salmoria]
+Mahjong Quest [David Graves, Nicola Salmoria]
+Quiz Quest - Hime to Yuusha no Monogatari [David Graves, Nicola Salmoria]
+Don Doko Don [David Graves, Nicola Salmoria]
+PuLiRuLa [David Graves, Nicola Salmoria]
+Dead Connection [David Graves, Nicola Salmoria]
+Football Champ [David Graves, Nicola Salmoria]
+Final Blow [David Graves, Nicola Salmoria]
+Drift Out [David Graves, Nicola Salmoria]
+Camel Try [David Graves, Nicola Salmoria]
+Yes/No Sinri Tokimeki Chart [David Graves, Nicola Salmoria]
+Quiz Jinsei Gekijoh [David Graves, Nicola Salmoria]
+Quiz Crayon Shinchan [David Graves, Nicola Salmoria]
+Quiz Crayon Shinchan Orato Asobo [David Graves, Nicola Salmoria]
+Rambo III - Release 2 [Jarek Burczynski]
+Space Invaders DX [Jarek Burczynski]
+Violence Fight [Jarek Burczynski]
+Master of Weapon [Jarek Burczynski]
+Silent Dragon [Jarek Burczynski]
+Toypop [Edgardo E. Contini Salvan]
+Mortal Kombat 3 [Aaron Giles]
+Ultimate Mortal Kombat 3 [Aaron Giles]
+WWF: Wrestlemania [Aaron Giles]
+2 On 2 Open Ice Challenge [Aaron Giles]
+NBA Maximum Hangtime [Aaron Giles]
+Rampage: World Tour [Aaron Giles]
+Brute Force [Aaron Giles]
+
+
+New clones supported:
+---------------------
+
+Blasteroids (with heads)
+Cyberball (version 2)
+Rack' em Up (= The Hustler)
+Super Formula (= Tail to Nose)
+Tokusyu Butai UAG (= Thundercade)
+Double Dragon (original)
+Tournament Arkanoid
+TMNT (Oceania)
+Legend of Kage (2 new bootlegs)
+Sonic Wings (= Aero Fighters)
+
+
+==========================================================================
+
+
+0.37 BETA 4
+
+PORTERS: THERE ARE A FEW API CHANGES, READ CAREFULLY THE SOURCE SECTION.
+
+
+These drivers have improved GRAPHICS:
+-------------------------------------
+
+- Background smoothing in Return of the Jedi. [Nicola Salmoria]
+
+- Greatly improved Star Fire / Fire One. [Aaron Giles]
+
+- Fixed final fireworks in Ajax. [Nicola Salmoria]
+
+
+These drivers have improved SOUND:
+----------------------------------
+
+- Fixed sound in the Exidy games. [Aaron Giles]
+
+- Improved YM2413 emulation. [Paul Leaman]
+
+
+Source:
+-------
+
+- [DOS] The SEAL patch was bugged on mono sound cards, a new one is included.
+
+- Fixed save_screen_snapshot() to save VIDEO_PIXEL_ASPECT_RATIO_1_2 games with
+  the correct aspect ratio. Also introduced save_screen_snapshot_as(). Porters
+  are STRONGLY ADVISED to use one of these functions to save screen shots,
+  instead of providing their own. Note that osd_save_snapshot() now takes a
+  bitmap argument, so it must not be hardwired to save Machine->scrbitmap
+  (overlays wouldn't be saved otherwise). [nathan]
+
+- A few changes were made to allow run time changes to the visible area, and
+  to simplify the OS dependant code by moving some functionality to the core.
+  - Added visible_area to struct RunningMachine. Drivers must now use
+    Machine->visible_area instead of Machine->drv->visible_area. The field in
+    struct MachineDriver has been renamed default_visible_area and it should
+    normally be used by the core only.
+  - New function set_visible_area() that can be used by drivers to change the
+    active display area at run time.
+  - New function osd_set_visible_area() used to tell the OS dependant code the
+    portion of the bitmap that has to be drawn on screen. It is passed
+    coordinates relative to the actual bitmap, so no further processing is
+    required for rotated games. The OS dependant code is allowed to display a
+    smaller portion of the bitmap if necessary, but it must not draw a larger
+    portion (which might contain garbage).
+    The function must call set_ui_visarea() to tell the core the portion of
+    the bitmap which is actually visible (which might be smaller than
+    requested), so the user interface can be drawn accordingly.
+  - osd_update_video_and_audio() takes a bitmap parameter so must not be
+    hardwired to draw Machine->scrbitmap.
+  - New fields vector_width and vector_height in struct GameOptions. The OS
+    dependant code must initialize them to force different resolutions for
+    vector games. If left at 0, the default 640x480 is used.
+  - osd_create_display() must no longer create the screen bitmap, this is done
+    by the core. It must only create the display screen / window, and return 0
+    on success.
+    Note that the width and height parameters passed are now the dimensions of
+    the visible area, not of the bitmap as they were before; therefore the
+    function only has to create a screen / window of the requested size, without
+    further processing, and without peeking into the drv->visible_area field.
+    This applies to osd_set_display() as well.
+  - Changed osd_new_bitmap() and renamed it osd_alloc_bitmap() to avoid
+    confusion with old drivers. The function is the same as before but it must
+    not swap width and height for vertical games - this is done by the core.
+    osd_new_bitmap() and osd_free_bitmap() must not be called by drivers, they
+    are reserved to the core. Drivers must call the equivalent bitmap_alloc()
+    and bitmap_free() which take care of rotation for vertical games.
+  [Nicola Salmoria]
+
+- The meaning of the full_refresh parameter to vh_screenrefresh() has been
+  slightly extend. It usually means "don't make incremental updates to the
+  screen bitmap, redraw it completely", however if the driver wants it can also
+  mean "redraw all temporary bitmaps". This happens when using the functions
+  below. This way, drivers doing lots of memset(dirtybuffer,1) can be
+  simplified and schedule it just at the beginning of vh_screenrefresh.
+- Added some functions that make flip screen handling a little more eloquent:
+  flip_screen_x_w(), flip_screen_y_w(), flip_screen_w() to set the flip_screen
+  bits, and 3 variables flip_screen_x, flip_screen_y, flip_screen to read them
+  back. If the flipscreen changes, the funtions automatically set full_refresh
+  to true for the next call of vh_screenrefresh.
+  The functions also call tilemap_set_flip(ALL_TILEMAPS), so no further
+  operations are required when using TileMaps.
+  Finally, the functions also adjust the visible area, mirroring it, in case
+  it is asymmetrical. For example, rockola.c relies on this.
+- Also added 2 helper functions:
+  - void set_vh_global_attribute( data_t *addr, data_t data )    This takes a
+  pointer to any variable and a value, and sets the variable to the value.  In
+  addition, if the value has changed, it sets full_refresh to true by calling
+  the next function.
+  - void schedule_full_refresh(void)   This just sets full_refresh to true for
+  the next screenrefresh.  See vidhrdw/galaxian.c for examples on this and
+  set_vh_global_attribute.
+  [Zsolt Vasvari]
+
+
+New games supported:
+--------------------
+
+Victory [Aaron Giles]
+Hana Awase [Zsolt Vasvari]
+Hit the Ice [Jarek Burczynski]
+Rambo III [Jarek Burczynski]
+Quiz Sekai wa SHOW by shobai [Jarek Burczynski]
+
+
+New clones supported:
+---------------------
+
+Rescue Raider (Stand-Alone)
+Pang 3 (Euro)
+Sangokushi II (= Warriors of Fate)
+Ashura Blaster (US)
+Exodus (= Defend the Terra Attack on the Red UFO)
+
+
+==========================================================================
+
+
+0.37 BETA 3
+
+
+These drivers have improved GRAPHICS:
+-------------------------------------
+
+- Fixed colors in Joyful Road. [Phil Stroffolino]
+
+
+These drivers have improved SOUND:
+----------------------------------
+
+- Sound in Jumping. [Jarek Burczynski]
+
+
+Other drivers changes:
+----------------------
+
+- Lots of fixes to the 8080bw games. [Zsolt Vasvari]
+
+- Fixed dipswitches in many games. [Gerardo Oporto]
+
+- Alternate control system in Assault, only available when cheats are enabled.
+  [Maurizio Zanello]
+
+
+Source:
+-------
+
+- Lots of changes to some CPU cores (mostly i86). I186 support. [Peter Trauner,
+  Juergen Buchmueller, Aaron Giles]
+
+- Preliminary MIPS CPU emulation. [smf]
+
+- New makefile, easier to port, split into multiple files. [Juergen Buchmueller]
+
+- New modes for drawgfx(): TRANSPARENCY_NONE_RAW, TRANSPARENCY_PEN_RAW,
+  TRANSPARENCY_PENS_RAW, TRANSPARENCY_THROUGH_RAW. The purpose of these is to
+  allow you to work in "raw" colorspace (that is, unremapped pens) and then
+  perform the palette lookup at the end. This is useful for a number of games
+  that do collision detection or foreground/background blends (e.g., the palette
+  index is ((fgpen << 4) | bgpen)).
+  When you use these modes, the "color" parameter doesn't refer to the palette
+  any longer. Instead, it is just a value that is added to the raw pen value
+  of the graphics you are drawing. That way, if your background layer uses
+  pens 0-63 and your foreground layer uses pens 64-127, you can pass in a
+  color of 0 when drawing the background layer and 64 when drawing the
+  foreground.
+  Also added copybitmap_remap() and copyscrollbitmap_remap(). These take the
+  same parameters as the originals, but don't make the assumption that
+  TRANSPARENCY_NONE means TRANSPARENCY_NONE_RAW (which, if you think about it,
+  is the way they work).
+  This means that you can do all your work with raw palette indexes until the
+  very end, and then do a copybitmap_remap(TRANSPARENCY_NONE) to copy the
+  result and do the remap step in the end.
+  Finally, there's a new pair of modes that are only supported in
+  copybitmap(): TRANSPARENCY_BLEND and TRANSPARENCY_BLEND_RAW. For these
+  modes, the source bitmap is shifted left by the "color" parameter and then
+  ORed into the destination bitmap. This lets you compute the palette indexes
+  (and optionally do the lookup) for games that look up the palette by
+  combining forground and background pen indices. [Aaron Giles]
+
+- Moved logerror() from mame.c to the OS dependant code, and removed errorlog
+  from the GameOptions structure.
+
+- Major redesign of the artwork support. All the drivers need to do is call
+  overlay_create() or overlay_load() and the rest is handled by the core.
+  Opacity/translucency support in 16-bit mode.  Check out Space Invaders for
+  example, the colored strips that make up the overlay is faintly visible
+  under the black areas. [Mathis Rosenhauer, Zsolt Vasvari]
+
+- Fixed YM2608 adpcm support. [Aaron Giles]
+
+
+New games supported:
+--------------------
+
+Oh My God! [Nicola Salmoria]
+Power Instinct [Luca Elia]
+Magix [Luca Elia]
+Hatris [Aaron Giles]
+Cerberus [Aaron Giles, Paul Leaman]
+Mayhem 2002 [Aaron Giles, Paul Leaman]
+World Series: The Season [Aaron Giles, Paul Leaman]
+Alley Master [Aaron Giles, Paul Leaman]
+Danger Zone [Aaron Giles, Paul Leaman]
+Baseball The Season II [Aaron Giles, Paul Leaman]
+Super Baseball Double Play Home Run Derby [Aaron Giles, Paul Leaman]
+Strike Zone [Aaron Giles, Paul Leaman]
+Redline Racer (2 players) [Aaron Giles, Paul Leaman]
+Quarterback [Aaron Giles, Paul Leaman]
+Viper [Aaron Giles, Paul Leaman]
+John Elway's Team Quarterback [Aaron Giles, Paul Leaman]
+All American Football (rev E) [Aaron Giles, Paul Leaman]
+Ironman Stewart's Super Off-Road [Aaron Giles, Paul Leaman]
+Ironman Stewart's Super Off-Road Track Pack [Aaron Giles, Paul Leaman]
+Pigout [Aaron Giles, Paul Leaman]
+Ataxx [Aaron Giles, Paul Leaman]
+World Soccer Finals [Aaron Giles, Paul Leaman]
+Danny Sullivan's Indy Heat [Aaron Giles, Paul Leaman]
+Nastar / Rastan Saga 2 [Jarek Burczynski]
+Crime City [Jarek Burczynski]
+Ashura Blaster [Jarek Burczynski]
+Safari Rally [Zsolt Vasvari]
+
+
+New clones supported:
+---------------------
+
+Pac & Pal (older)
+Tetris (B-System)
+
+
+==========================================================================
+
+
+0.37 BETA 2
+
+These drivers have improved GRAPHICS:
+-------------------------------------
+
+- Accurate sprite drawing in MCR 1 & 2 games (see Satan's Hollow) [Aaron Giles]
+
+- Fixed sprite / tile priority in Mad Gear and Garyo Retsuden. [Bryan McPhail]
+
+- Fixed rowscroll in Ghostbusters. [Bryan McPhail]
+
+- Correct colors in Lasso. [Phil Stroffolino]
+
+- Fixed colors in Reactor. [Fabrice Frances]
+
+
+These drivers have improved SOUND:
+----------------------------------
+
+- Fixed adpcm decoding in the K053260, this improves several Konami games.
+  [Ernesto Corvi]
+
+- Sound in Demon. [Zsolt Vasvari]
+
+- Samples in Warrior. [Mathis Rosenhauer]
+
+- Sound in Lasso. [Phil Stroffolino]
+
+
+Other drivers changes:
+----------------------
+
+- Fixed Gang Wars original version, Super Baseball, Battlefield,
+  Time Solders rev 1. [Bryan McPhail]
+
+
+Changes to the main program:
+----------------------------
+
+- Massive rewrite of the cheat system user interface. This is still a work
+  in progress. [Brad Oliver]
+
+- First pass for multi language support with external translation files.
+  [Brad Oliver]
+
+- Extended the internal font to support characters 128-255 (ISO Latin-1).
+  [Juergen Buchmueller]
+
+- Fixed Hu6280 emulation bugs which caused missing levels in Trio the Punch.
+  [Bryan McPhail]
+
+
+Source:
+-------
+
+- Replaced instances of "if (errorlog) fprintf(errorlog," with a call to the
+  new function logerror().
+
+- New filetypes that must be supported by the OS dependant code:
+  FILETYPE_HIGHSCORE_DB
+  FILETYPE_HISTORY
+  FILETYPE_CHEAT
+  FILETYPE_LANGUAGE
+
+  new functions:
+  osd_readkey_unicode
+  osd_fgetc
+  osd_ungetc
+  osd_fgets
+  osd_feof
+  osd_ftell
+
+  new filed in struct Gameoptions: language_file. The OS dependant code must
+  initialize it if it wants to use a translation file.
+  [Brad Oliver]
+
+- I added a new parameter to the end of the EEPROM interface to enable multiple
+  reads to occur after a single read command. Added an EEPROM_set_data()
+  routine that can be used to explicitly initialize the contents of the EEPROM
+  if the NVRAM file isn't found. [Aaron Giles]
+
+
+New games supported:
+--------------------
+
+Pipe Dreams [Bryan McPhail, Aaron Giles]
+Tail to Nose [Nicola Salmoria]
+Poly-Play [Martin Buchholz]
+Kyros [Bryan McPhail]
+Super Stingray [Bryan McPhail]
+Battle Rangers / Bloody Wolf [Bryan McPhail]
+Dangun Feveron [Luca Elia]
+Esprade [Luca Elia]
+Uo Poko [Luca Elia]
+Insector (prototype) [Fabrice Frances]
+Screw Loose (prototype) [Fabrice Frances]
+Mermaid [Zsolt Vasvari]
+
+
+New clones supported:
+---------------------
+
+Psycho-Nics Oscar (2 Japanese sets)
+Astro Blaster (version 3)
+Grind Stormer (= V-Five)
+Sheriff (= Bandido)
+Super Burger Time (World)
+Vapor Trail (World)
+In The Hunt (US)
+Space Chaser (CV)
+Space Attack (older)
+800 Fathoms (= Mariner)
+Spinal Breakers (US)
+Bosconian (older)
+Juno First (Gottlieb)
+
+
+==========================================================================
+
+
+0.37 BETA 1
+
+These drivers have improved GRAPHICS:
+-------------------------------------
+
+- Background in Exerion. [Aaron Giles]
+
+- Artwork support in Space Encounters. [Zsolt Vasvari]
+
+- Fixed sprite colors in the MCR2 games, however overlapping sprites are still
+  wrong. [Aaron Giles]
+
+- Fixed colors and stars in the Astrocade games (Gorf, Wizard of Wor, etc.).
+  [Nicola Salmoria]
+
+- Fixed front layer in Turbo Force. [Nicola Salmoria]
+
+- Fixed colors in Lupin III. [Zsolt Vasvari]
+
+
+These drivers have improved SOUND:
+----------------------------------
+
+- Emulated saucer sound in Space Invaders - sample no longer used (the other
+  samples are still required). [Zsolt Vasvari]
+
+- Completed sound in Splash. [Manuel Abadia]
+
+- Samples support in Got-Ya. [Zsolt Vasvari]
+
+- Sound in Berlin Wall. [Luca Elia]
+
+
+Changes to the main program:
+----------------------------
+
+- Support for 24-bit artwork. [Mathis Rosenhauer]
+
+
+Source:
+-------
+
+- Support for a priority buffer, updated by tilemap.c, which can be used to
+  draw sprites using the new function pdrawgfx(). This allowed to fix many
+  tile/sprite priority bugs e.g. in Ajax, Lightning Thunder, Simpsons,
+  Vendetta, Punk Shot, Gradius III and others.
+  [Phil Stroffolino, Nicola Salmoria]
+
+- Change the API for tilemap_mark_tile_dirty() and the get_tile_info hooks,
+  now a single parameter tile_index is used instead of (col,row). A function
+  passed to tilemap_create() does the (col,row)->tile_index mapping, two
+  standard functions are provided for the common cases.
+  All drivers have been converted to the new API except for namcos2.c, which
+  is therefore broken at the moment. [Phil Stroffolino]
+
+- New GAME_UNEMULATED_PROTECTION flag.
+
+- 6803/63701 external port writes no longer set to 1 the bits that are set as
+  inputs in the DDR register. Instead, they are set to the value returned by a
+  read from the port. [Tatsuyuki Satoh]
+
+- Updated all memory handlers to the new READ_HANDLER()/WRITE_HANDLER() macro
+  declarations. The old "function(int offset,int data)" style must not be used
+  anymore.
+
+
+New games supported:
+--------------------
+
+Air Duel [Nicola Salmoria]
+Pound for Pound [Nicola Salmoria]
+Rabio Lepus / Rabbit Punch [Aaron Giles]
+Super Volleyball [Aaron Giles]
+Funky Fish [Zsolt Vasvari]
+Mr. Jong / Crazy Blocks [Takahiro Nogi]
+Karate Blazers [Nicola Salmoria]
+Spinal Breakers [Nicola Salmoria]
+Thundercade [Luca Elia]
+Twin Eagle [Luca Elia]
+DownTown [Luca Elia]
+U.S. Classic [Luca Elia]
+Arbalester [Luca Elia]
+Meta Fox [Luca Elia]
+Zing Zing Zip [Luca Elia]
+War of Aero [Luca Elia]
+
+
+New clones supported:
+---------------------
+
+Ninja Ryukenden (= Ninja Gaiden)
+Spy Hunter 2 (revision 2)
+R-Type (Japan)
+Dyger (set 2)
