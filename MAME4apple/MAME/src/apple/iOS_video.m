@@ -10,8 +10,6 @@
 #include "dirty.h"
 #include <mach/mach_time.h>
 
-//UINT32 gfx_width;
-//UINT32 gfx_height;
 UINT32 gfx_depth;
 UINT32 gfx_fps;
 
@@ -56,6 +54,7 @@ void osd_exit()
 
 const int safety = 16;
 
+// from MSDOS video.c
 struct osd_bitmap *osd_alloc_bitmap(int width,int height,int depth)
 {
     struct osd_bitmap *bitmap;
@@ -138,8 +137,6 @@ int osd_create_display(int width,int height,int depth,int fps,int attributes,int
     NSLog(@"osd_create_display(%d, %d, %d, %d)", width, height, depth, fps);
     
     gfx_fps = fps;
-    //gfx_width = width;
-    //gfx_height = height;
     gfx_depth = depth;
     objc_alloc_framebuffer(width, height, depth, attributes, orientation);
     return 0;
@@ -178,7 +175,10 @@ UINT8 getb(UINT32 p)
 
 int modifiable_palette;
 int screen_colors;
+int brightness = 100;
+float osd_gamma_correction = 1.0f;
 
+// from MSDOS video.c
 int osd_allocate_colors(unsigned int totalcolors, const UINT8 *palette, UINT16 *pens, int modifiable)
 {
     modifiable_palette = modifiable;
@@ -204,9 +204,9 @@ int osd_allocate_colors(unsigned int totalcolors, const UINT8 *palette, UINT16 *
         
         for (int i = 0; i < totalcolors; i++)
         {
-            r = 255; // * brightness * pow(palette[3*i+0] / 255.0, 1 / osd_gamma_correction) / 100;
-            g = 255; // * brightness * pow(palette[3*i+1] / 255.0, 1 / osd_gamma_correction) / 100;
-            b = 255; // * brightness * pow(palette[3*i+2] / 255.0, 1 / osd_gamma_correction) / 100;
+            r = 255 * brightness * pow(palette[3*i+0] / 255.0, 1 / osd_gamma_correction) / 100;
+            g = 255 * brightness * pow(palette[3*i+1] / 255.0, 1 / osd_gamma_correction) / 100;
+            b = 255 * brightness * pow(palette[3*i+2] / 255.0, 1 / osd_gamma_correction) / 100;
             *pens++ = makecol(r,g,b);
         }
         
@@ -365,6 +365,7 @@ void osd_mark_dirty(int _x1,int _y1,int _x2,int _y2, int o)
 
 void osd_clearbitmap(struct osd_bitmap *bitmap)
 {
+    /*
     NSLog(@"osd_clearbitmap()");
 
     UINT32 bytes_per_pixel = 0;
@@ -387,6 +388,29 @@ void osd_clearbitmap(struct osd_bitmap *bitmap)
         memset(ptr, 0, line_width * bytes_per_pixel);
         ptr += line_width;
     }
+    //*/
+    // from MSDOS video.c
+    int i;
+    
+    for (i = 0; i < bitmap->height; i++)
+    {
+        if (bitmap->depth == 16)
+        {
+            memset(bitmap->line[i], 0, 2 * bitmap->width);
+        }
+        else
+        {
+            memset(bitmap->line[i], 0, bitmap->width);
+        }
+    }
+    
+    if (bitmap == Machine->scrbitmap)
+    {
+        extern int bitmap_dirty;        /* in mame.c */
+        
+        osd_mark_dirty (0,0,bitmap->width-1,bitmap->height-1,1);
+        bitmap_dirty = 1;
+    }
 }
 
 void osd_set_gamma(float _gamma)
@@ -395,7 +419,7 @@ void osd_set_gamma(float _gamma)
 
 float osd_get_gamma(void)
 {
-    return 0;
+    return 1;
 }
 
 /* brightess = percentage 0-100% */
@@ -405,7 +429,7 @@ void osd_set_brightness(int _brightness)
 
 int osd_get_brightness(void)
 {
-    return 0;
+    return 100;
 }
 
 void osd_pause(int paused)
