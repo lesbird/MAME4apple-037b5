@@ -11,6 +11,9 @@ int joyAnalogLeftX[2];
 int joyAnalogLeftY[2];
 int joyAnalogRightX[2];
 int joyAnalogRightY[2];
+int joyAnalogDeadzone = 64;
+
+static int key[256];
 
 extern int touchInputX;
 extern int touchInputY;
@@ -50,6 +53,7 @@ enum
     KEY_PRTSCR, KEY_PAUSE, KEY_LSHIFT, KEY_RSHIFT, KEY_LCONTROL, KEY_RCONTROL,  // 91
     KEY_ALT, KEY_ALTGR, KEY_LWIN, KEY_RWIN, // 97
     KEY_MENU, KEY_SCRLOCK, KEY_NUMLOCK, KEY_CAPSLOCK,   // 101
+    KEY_MAX
 };
 
 static struct KeyboardInfo keylist[] =
@@ -181,8 +185,12 @@ const struct KeyboardInfo *osd_get_key_list(void)
     return keylist;
 }
 
-int osd_is_key_pressed(int keycode)
+void update_key_array()
 {
+    for (int i = 0; i < KEY_MAX; i++)
+    {
+        key[i] = 0;
+    }
     NSArray *controllerList = [GCController controllers];
     if (controllerList.count > 0)
     {
@@ -191,146 +199,161 @@ int osd_is_key_pressed(int keycode)
         {
             if (controller.gamepad != nil)
             {
-                switch (keycode)
+                if (controller.gamepad.buttonY.pressed)
                 {
-                    case KEY_ESC:
-                        if (controller.gamepad.buttonY.pressed)
-                        {
-                            return 1;
-                        }
-                        break;
-                    case KEY_5:
-                        if (controller.gamepad.leftShoulder.pressed)
-                        {
-                            return 1;
-                        }
-                        break;
-                    case KEY_1:
-                        if (controller.gamepad.rightShoulder.pressed)
-                        {
-                            return 1;
-                        }
-                        break;
-                    case KEY_UP:
-                        if (controller.gamepad.dpad.up.pressed)
-                        {
-                            return 1;
-                        }
-                        break;
-                    case KEY_RIGHT:
-                        if (controller.gamepad.dpad.right.pressed)
-                        {
-                            return 1;
-                        }
-                        break;
-                    case KEY_DOWN:
-                        if (controller.gamepad.dpad.down.pressed)
-                        {
-                            return 1;
-                        }
-                        break;
-                    case KEY_LEFT:
-                        if (controller.gamepad.dpad.left.pressed)
-                        {
-                            return 1;
-                        }
-                        break;
-                    case KEY_LCONTROL: // button 1
-                    case KEY_ENTER:
-                        if (controller.gamepad.buttonA.pressed)
-                        {
-                            return 1;
-                        }
-                        break;
-                    case KEY_ALT: // button 2
-                        if (controller.gamepad.buttonB.pressed)
-                        {
-                            return 1;
-                        }
-                        break;
-                    case KEY_SPACE: // button 3
-                        if (controller.gamepad.buttonX.pressed)
-                        {
-                            return 1;
-                        }
-                        break;
+                    if (controller.gamepad.rightShoulder.pressed)
+                    {
+                        key[KEY_ESC] = 1;
+                    }
+                    else
+                    {
+                        key[KEY_LSHIFT] = 1;
+                    }
+                }
+                if (controller.gamepad.leftShoulder.pressed)
+                {
+                    key[KEY_5] = 1;
+                }
+                if (controller.gamepad.rightShoulder.pressed)
+                {
+                    key[KEY_1] = 1;
+                }
+                if (controller.gamepad.dpad.up.pressed)
+                {
+                    key[KEY_UP] = 1;
+                }
+                if (controller.gamepad.dpad.right.pressed)
+                {
+                    key[KEY_RIGHT] = 1;
+                }
+                if (controller.gamepad.dpad.down.pressed)
+                {
+                    key[KEY_DOWN] = 1;
+                }
+                if (controller.gamepad.dpad.left.pressed)
+                {
+                    key[KEY_LEFT] = 1;
+                }
+                if (controller.gamepad.buttonA.pressed)
+                {
+                    key[KEY_LCONTROL] = 1;
+                    key[KEY_ENTER] = 1;
+                }
+                if (controller.gamepad.buttonB.pressed)
+                {
+                    key[KEY_ALT] = 1;
+                }
+                if (controller.gamepad.buttonX.pressed)
+                {
+                    key[KEY_SPACE] = 1;
                 }
             }
             if (controller.extendedGamepad != nil)
             {
-                switch (keycode)
+                if (controller.extendedGamepad.leftTrigger.pressed)
                 {
-                    case KEY_LSHIFT: // modifier for profiler (LSHIFT + F11)
-                        if (controller.extendedGamepad.leftTrigger.pressed)
-                        {
-                            return 1;
-                        }
-                        break;
-                    case KEY_TAB: // config menu
-                        if (controller.extendedGamepad.leftTrigger.pressed)
-                        {
-                            if (controller.extendedGamepad.rightTrigger.pressed)
-                            {
-                                return 0;
-                            }
-                            return 1;
-                        }
-                        break;
-                        //case KEY_TILDE: // on screen display
-                        //    if (controller.extendedGamepad.rightTrigger.pressed)
-                        //    {
-                        //        return 1;
-                        //    }
-                        //    break;
-                    case KEY_F11: // profiler
-                        if (controller.extendedGamepad.rightTrigger.pressed)
-                        {
-                            return 1;
-                        }
-                        break;
+                    key[KEY_LSHIFT] = 1;
+                }
+                if (controller.extendedGamepad.leftTrigger.pressed)
+                {
+                    if (controller.extendedGamepad.rightTrigger.pressed)
+                    {
+                        key[KEY_TAB] = 0;
+                    }
+                    else
+                    {
+                        key[KEY_TAB] = 1;
+                    }
+                }
+                if (controller.extendedGamepad.rightTrigger.pressed)
+                {
+                    key[KEY_F11] = 1;
                 }
             }
         }
     }
-    if (touchInputX > 0 && keycode == KEY_RIGHT)
+
+    // analog stick left
+    if (joyAnalogLeftY[0] < -joyAnalogDeadzone)
     {
-        return 1;
+        key[KEY_DOWN] = 1;
     }
-    if (touchInputX < 0 && keycode == KEY_LEFT)
+    if (joyAnalogLeftY[0] > joyAnalogDeadzone)
     {
-        return 1;
+        key[KEY_UP] = 1;
     }
-    if (touchInputY > 0 && keycode == KEY_UP)
+    if (joyAnalogLeftX[0] < -joyAnalogDeadzone)
     {
-        return 1;
+        key[KEY_LEFT] = 1;
     }
-    if (touchInputY < 0 && keycode == KEY_DOWN)
+    if (joyAnalogLeftX[0] > joyAnalogDeadzone)
     {
-        return 1;
+        key[KEY_RIGHT] = 1;
+    }
+    // analog stick right
+    if (joyAnalogLeftY[1] < -joyAnalogDeadzone)
+    {
+        key[KEY_F] = 1;
+    }
+    if (joyAnalogLeftY[1] > joyAnalogDeadzone)
+    {
+        key[KEY_R] = 1;
+    }
+    if (joyAnalogLeftX[1] < -joyAnalogDeadzone)
+    {
+        key[KEY_D] = 1;
+    }
+    if (joyAnalogLeftX[1] > joyAnalogDeadzone)
+    {
+        key[KEY_G] = 1;
+    }
+
+    // touch screen inputs (experimental)
+    if (touchInputX > 0)
+    {
+        key[KEY_RIGHT] = 1;
+    }
+    if (touchInputX < 0)
+    {
+        key[KEY_LEFT] = 1;
+    }
+    if (touchInputY > 0)
+    {
+        key[KEY_UP] = 1;
+    }
+    if (touchInputY < 0)
+    {
+        key[KEY_DOWN] = 1;
     }
     if (touchTapCount > 0)
     {
-        if (CGRectContainsPoint(topLeftRect, startTouchPos) && keycode == KEY_5)
+        CGPoint convertPoint = CGPointMake(startTouchPos.x + (viewSize.width / 2), viewSize.height - (startTouchPos.y + (viewSize.height / 2)));
+        if (CGRectContainsPoint(topLeftRect, convertPoint))
         {
-            // add coin
-            return 1;
+            NSLog(@"Add Coin touched");
+            key[KEY_5] = 1;
         }
-        else if (CGRectContainsPoint(topRightRect, startTouchPos) && keycode == KEY_1)
+        else if (CGRectContainsPoint(topRightRect, convertPoint))
         {
-            // start game
-            return 1;
+            NSLog(@"Start Game touched");
+            key[KEY_1] = 1;
         }
-        else if (CGRectContainsPoint(botLeftRect, startTouchPos) && keycode == KEY_ESC)
+        else if (CGRectContainsPoint(botLeftRect, convertPoint))
         {
-            // exit game
-            return 1;
+            NSLog(@"Exit Game touched");
+            key[KEY_ESC] = 1;
         }
-        else if (keycode == KEY_LCONTROL || keycode == KEY_ENTER)
-        {
-            return 1;
-        }
+        //else if (keycode == KEY_LCONTROL || keycode == KEY_ENTER)
+        //{
+        //    //touchTapCount = 0;
+        //    //return 1;
+        //}
     }
-    return 0;
+}
+
+int osd_is_key_pressed(int keycode)
+{
+    return key[keycode];
 }
 
 int osd_readkey_unicode(int flush)
@@ -345,6 +368,7 @@ int osd_wait_keypress(void)
 
 void poll_joysticks(void)
 {
+    update_key_array();
 }
 
 void osd_poll_joysticks(void)
@@ -485,11 +509,13 @@ void osd_analogjoy_read(int player,int *analog_x, int *analog_y)
     }
     if (player == 0)
     {
+        //NSLog(@"joyAnalogLeft=%d,%d", joyAnalogLeftX[0], joyAnalogLeftY[0]);
         *analog_x = joyAnalogLeftX[0];
         *analog_y = joyAnalogLeftY[0];
     }
     else if (player == 1)
     {
+        //NSLog(@"joyAnalogRight=%d,%d", joyAnalogRightX[0], joyAnalogRightY[0]);
         *analog_x = joyAnalogRightX[0];
         *analog_y = joyAnalogRightY[0];
     }

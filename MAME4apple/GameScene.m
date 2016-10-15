@@ -13,6 +13,8 @@
 #define USE_TABLEVIEW 0
 #define USE_RENDERTHREAD 0
 
+#define VERSION_STRING "V1.0"
+
 extern void parse_cmdline(int argc, char **argv, int game_index, char *override_default_rompath);
 
 SKSpriteNode *frameBufferNode;
@@ -28,11 +30,14 @@ int game_index = 0; // currently selected game
 int gameListCount;
 SKLabelNode *gameList[MAX_GAME_LIST];
 SKLabelNode *gameListDesc[MAX_GAME_LIST];
+SKLabelNode *versionLabel;
 SKNode *gameListNode;
 SKLabelNode *coinButtonLabel;
 SKLabelNode *startButtonLabel;
 SKLabelNode *exitButtonLabel;
 SKNode *buttonLayerNode;
+
+SKShapeNode *debugTouchSprite;
 
 typedef struct GameDriverList
 {
@@ -133,9 +138,11 @@ int list_step = 40; // gap between lines in game list
         gameListDesc[i].horizontalAlignmentMode = SKLabelHorizontalAlignmentModeLeft;
         gameListDesc[i].fontName = @"Courier-Bold";
         gameListDesc[i].fontSize = 12;
+        gameListDesc[i].fontColor = [UIColor yellowColor];
         [gameListNode addChild:gameListDesc[i]];
     }
-    
+
+    [self computeFrameBufferScale:width height:height];
     [self updateGameList];
 #endif
     
@@ -145,6 +152,17 @@ int list_step = 40; // gap between lines in game list
     gameCountLabel.fontName = @"Courier-Bold";
     gameCountLabel.fontSize = 16;
     [gameListNode addChild:gameCountLabel];
+    
+    versionLabel = [SKLabelNode labelNodeWithText:[NSString stringWithFormat:@"MAME4apple %s 2016 by Les Bird (www.lesbird.com)", VERSION_STRING]];
+    versionLabel.position = CGPointMake(0, -(height / 2) + 16);
+    versionLabel.fontName = @"Courier-Bold";
+    versionLabel.fontSize = 20;
+    [gameListNode addChild:versionLabel];
+    
+    debugTouchSprite = [SKShapeNode shapeNodeWithCircleOfRadius:32];
+    debugTouchSprite.fillColor = [UIColor whiteColor];
+    debugTouchSprite.hidden = YES;
+    [self addChild:debugTouchSprite];
     
     self.backgroundColor = [UIColor blackColor];
     
@@ -352,14 +370,26 @@ void fillBufferData(UINT32 *buf, int width, int height)
         frameBufferNode.xScale = scalex;
     }
     
-    for (int i = 0; i < gameListCount; i++)
-    {
-        gameList[i].position = CGPointMake(-(viewSize.width / 2.5f), gameList[i].position.y);
-        gameListDesc[i].position = CGPointMake(-(viewSize.width / 2.5f), gameListDesc[i].position.y);
-    }
-
     float x = viewSize.width / 2;
     float y = viewSize.height / 2;
+
+    for (int i = 0; i < gameListCount; i++)
+    {
+        float ly1 = gameList[i].position.y;
+        gameList[i].position = CGPointMake(-(viewSize.width / 2.5f), ly1);
+        float ly2 = gameListDesc[i].position.y;
+        gameListDesc[i].position = CGPointMake(-(viewSize.width / 2.5f), ly2);
+        if (ly1 < -(y - 32))
+        {
+            gameList[i].hidden = YES;
+            gameListDesc[i].hidden = YES;
+        }
+        else
+        {
+            gameList[i].hidden = NO;
+            gameListDesc[i].hidden = NO;
+        }
+    }
     if (coinButtonLabel != nil)
     {
         coinButtonLabel.position = CGPointMake(-x + 64, y - 64);
@@ -372,12 +402,18 @@ void fillBufferData(UINT32 *buf, int width, int height)
     {
         exitButtonLabel.position = CGPointMake(-x + 64, y + 64);
     }
+
+    gameCountLabel.position = CGPointMake(-x + 16, -y + 16);
+    versionLabel.position = CGPointMake(0, -y + 16);
 }
 
 CGPoint startTouchPos;
 -(void)touchDownAtPoint:(CGPoint)pos
 {
     startTouchPos = pos;
+    
+    debugTouchSprite.hidden = NO;
+    debugTouchSprite.position = startTouchPos;
 }
 
 int touchInputY;
@@ -404,6 +440,8 @@ float slideAccumulatorX;
     }
     
     startTouchPos = pos;
+    
+    debugTouchSprite.position = startTouchPos;
 }
 
 -(void)touchUpAtPoint:(CGPoint)pos
@@ -413,6 +451,8 @@ float slideAccumulatorX;
     touchInputX = 0;
     touchInputY = 0;
     scrollDir = 0;
+    
+    debugTouchSprite.hidden = YES;
 }
 
 -(void)touchesBegan:(NSSet *)touches withEvent:(UIEvent *)event
@@ -468,6 +508,46 @@ float slideAccumulatorX;
         return TRUE;
     }
     return FALSE;
+}
+
+-(BOOL)next_section
+{
+    if (buttonPress)
+    {
+        return FALSE;
+    }
+    char c = gameDriverList[selected_game].gameDriver->description[0];
+    for (int i = selected_game; i < gameDriverCount; i++)
+    {
+        if (gameDriverList[i].gameDriver->description[0] != c)
+        {
+            //NSLog(@"jumping from %c to %c", c, gameDriverList[i].gameDriver->description[0]);
+            selected_game = i;
+            return TRUE;
+        }
+    }
+    selected_game = gameDriverCount - 1;
+    return TRUE;
+}
+
+-(BOOL)prev_section
+{
+    if (buttonPress)
+    {
+        return FALSE;
+    }
+    char c = gameDriverList[selected_game].gameDriver->description[0];
+    for (int i = selected_game; i >= 0; i--)
+    {
+        if (gameDriverList[i].gameDriver->description[0] != c)
+        {
+            //NSLog(@"jumping from %c to %c", c, gameDriverList[i].gameDriver->description[0]);
+            selected_game = i;
+            return TRUE;
+        }
+    }
+    selected_game = 0;
+    return TRUE;
 }
 
 // called 60 times/sec
@@ -541,19 +621,33 @@ float slideAccumulatorX;
         {
             if (controller.gamepad.dpad.down.pressed)
             {
-                update_list = [self next_game:1];
+                if (controller.gamepad.rightShoulder.pressed)
+                {
+                    update_list = [self next_game:9];
+                }
+                else
+                {
+                    update_list = [self next_game:1];
+                }
             }
             else if (controller.gamepad.dpad.up.pressed)
             {
-                update_list = [self prev_game:1];
+                if (controller.gamepad.rightShoulder.pressed)
+                {
+                    update_list = [self prev_game:9];
+                }
+                else
+                {
+                    update_list = [self prev_game:1];
+                }
             }
             else if (controller.gamepad.dpad.right.pressed)
             {
-                update_list = [self next_game:gameListCount - 1];
+                update_list = [self next_section];
             }
             else if (controller.gamepad.dpad.left.pressed)
             {
-                update_list = [self prev_game:gameListCount - 1];
+                update_list = [self prev_section];
             }
             else if (controller.gamepad.buttonA.pressed)
             {
@@ -656,7 +750,7 @@ float slideAccumulatorX;
             gameList[i].fontColor = [UIColor grayColor];
         }
         gameListDesc[i].text = [NSString stringWithFormat:@"%s %s", game_driver->year, game_driver->manufacturer];
-        gameListDesc[i].fontColor = [UIColor grayColor];
+        gameListDesc[i].fontColor = [UIColor yellowColor];
     }
     
     gameCountLabel.text = [NSString stringWithFormat:@"%d", gameDriverCount];

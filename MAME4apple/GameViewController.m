@@ -25,8 +25,8 @@
     // Present the scene
     [skView presentScene:scene];
     
-    skView.showsFPS = YES;
-    skView.showsNodeCount = YES;
+    //skView.showsFPS = YES;
+    //skView.showsNodeCount = YES;
 }
 
 - (BOOL)shouldAutorotate {
