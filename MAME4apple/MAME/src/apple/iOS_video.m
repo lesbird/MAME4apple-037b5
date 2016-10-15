@@ -365,7 +365,7 @@ void osd_mark_dirty(int _x1,int _y1,int _x2,int _y2, int o)
 
 void osd_clearbitmap(struct osd_bitmap *bitmap)
 {
-    /*
+    //*
     NSLog(@"osd_clearbitmap()");
 
     UINT32 bytes_per_pixel = 0;
@@ -388,7 +388,10 @@ void osd_clearbitmap(struct osd_bitmap *bitmap)
         memset(ptr, 0, line_width * bytes_per_pixel);
         ptr += line_width;
     }
+    extern int bitmap_dirty;        /* in mame.c */
+    bitmap_dirty = 1;
     //*/
+#if 0
     // from MSDOS video.c
     int i;
     
@@ -411,6 +414,7 @@ void osd_clearbitmap(struct osd_bitmap *bitmap)
         osd_mark_dirty (0,0,bitmap->width-1,bitmap->height-1,1);
         bitmap_dirty = 1;
     }
+#endif
 }
 
 void osd_set_gamma(float _gamma)
