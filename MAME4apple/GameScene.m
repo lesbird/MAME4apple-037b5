@@ -121,20 +121,22 @@ int list_step = 40; // gap between lines in game list
     int height = view.bounds.size.height;
     int width = view.bounds.size.width;
 
+    float x = -(width / 2.5f);
+
     gameListCount = height / list_step;
     int list_height = gameListCount * list_step;
     for (int i = 0; i < gameListCount; i++)
     {
         float y = (list_height / 2) - (list_step / 2) - (i * list_step);
         gameList[i] = [SKLabelNode labelNodeWithText:@"game"];
-        gameList[i].position = CGPointMake(-(width / 2.5f), y);
+        gameList[i].position = CGPointMake(x, y);
         gameList[i].horizontalAlignmentMode = SKLabelHorizontalAlignmentModeLeft;
         gameList[i].fontName = @"Courier-Bold";
         gameList[i].fontSize = 18;
         [gameListNode addChild:gameList[i]];
         y -= 15;
         gameListDesc[i] = [SKLabelNode labelNodeWithText:@"desc"];
-        gameListDesc[i].position = CGPointMake(-(width / 2.5f), y);
+        gameListDesc[i].position = CGPointMake(x, y);
         gameListDesc[i].horizontalAlignmentMode = SKLabelHorizontalAlignmentModeLeft;
         gameListDesc[i].fontName = @"Courier-Bold";
         gameListDesc[i].fontSize = 12;
@@ -375,10 +377,15 @@ void fillBufferData(UINT32 *buf, int width, int height)
 
     for (int i = 0; i < gameListCount; i++)
     {
+        float lx = viewSize.width / 2.5f;
+        //if (width == 1920) // apple tv
+        //{
+        //    lx = viewSize.width / 5;
+        //}
         float ly1 = gameList[i].position.y;
-        gameList[i].position = CGPointMake(-(viewSize.width / 2.5f), ly1);
+        gameList[i].position = CGPointMake(-lx, ly1);
         float ly2 = gameListDesc[i].position.y;
-        gameListDesc[i].position = CGPointMake(-(viewSize.width / 2.5f), ly2);
+        gameListDesc[i].position = CGPointMake(-lx, ly2);
         if (ly1 < -(y - 32))
         {
             gameList[i].hidden = YES;
