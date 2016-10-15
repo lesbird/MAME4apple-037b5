@@ -221,18 +221,22 @@ void update_key_array()
                 if (controller.gamepad.dpad.up.pressed)
                 {
                     key[KEY_UP] = 1;
+                    key[KEY_E] = 1;
                 }
                 if (controller.gamepad.dpad.right.pressed)
                 {
                     key[KEY_RIGHT] = 1;
+                    key[KEY_F] = 1;
                 }
                 if (controller.gamepad.dpad.down.pressed)
                 {
                     key[KEY_DOWN] = 1;
+                    key[KEY_D] = 1;
                 }
                 if (controller.gamepad.dpad.left.pressed)
                 {
                     key[KEY_LEFT] = 1;
+                    key[KEY_S] = 1;
                 }
                 if (controller.gamepad.buttonA.pressed)
                 {
@@ -277,35 +281,39 @@ void update_key_array()
     if (joyAnalogLeftY[0] < -joyAnalogDeadzone)
     {
         key[KEY_DOWN] = 1;
+        key[KEY_D] = 1;
     }
     if (joyAnalogLeftY[0] > joyAnalogDeadzone)
     {
         key[KEY_UP] = 1;
+        key[KEY_E] = 1;
     }
     if (joyAnalogLeftX[0] < -joyAnalogDeadzone)
     {
         key[KEY_LEFT] = 1;
+        key[KEY_S] = 1;
     }
     if (joyAnalogLeftX[0] > joyAnalogDeadzone)
     {
         key[KEY_RIGHT] = 1;
-    }
-    // analog stick right
-    if (joyAnalogLeftY[1] < -joyAnalogDeadzone)
-    {
         key[KEY_F] = 1;
     }
-    if (joyAnalogLeftY[1] > joyAnalogDeadzone)
+    // analog stick right
+    if (joyAnalogRightY[0] < -joyAnalogDeadzone)
     {
-        key[KEY_R] = 1;
+        key[KEY_K] = 1;
     }
-    if (joyAnalogLeftX[1] < -joyAnalogDeadzone)
+    if (joyAnalogRightY[0] > joyAnalogDeadzone)
     {
-        key[KEY_D] = 1;
+        key[KEY_I] = 1;
     }
-    if (joyAnalogLeftX[1] > joyAnalogDeadzone)
+    if (joyAnalogRightX[0] < -joyAnalogDeadzone)
     {
-        key[KEY_G] = 1;
+        key[KEY_J] = 1;
+    }
+    if (joyAnalogRightX[0] > joyAnalogDeadzone)
+    {
+        key[KEY_L] = 1;
     }
 
     // touch screen inputs (experimental)
