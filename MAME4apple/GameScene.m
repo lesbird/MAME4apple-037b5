@@ -256,7 +256,7 @@ UINT32 gameScreenHeight;
         NSLog(@"textureSize=%d,%d", w4, (UINT32)h);
         frameBuffer = [SKMutableTexture mutableTextureWithSize:CGSizeMake(w4, h)];
         frameBufferNode = [SKSpriteNode spriteNodeWithTexture:frameBuffer];
-        
+        frameBufferNode.position = CGPointMake(0, 32);
         [self addChild:frameBufferNode];
         
         /* touch buttons - disabled for now
@@ -357,24 +357,43 @@ void fillBufferData(UINT32 *buf, int width, int height)
 // scale to fit screen orientation
 -(void)computeFrameBufferScale:(UINT32)width height:(UINT32)height
 {
-    if (viewSize.height < viewSize.width)
+    bool aspecthx2 = false;
+    
+    UINT32 w = width;
+    UINT32 h = height;
+    if (Machine != nil && Machine->drv != nil)
+    {
+        // handle oddball aspect ratios like Blasteroids
+        if ((Machine->drv->video_attributes & VIDEO_PIXEL_ASPECT_RATIO_1_2) != 0)
+        {
+            aspecthx2 = true;
+            h *= 2;
+        }
+    }
+    
+    if (viewSize.height < viewSize.width) // landscape
     {
         // fit to height
-        float scaley = (float)viewSize.height / ((float)height + 32);
+        float scaley = (float)viewSize.height / ((float)h + 32);
         frameBufferNode.yScale = -scaley; // flip the Y since OpenGL inverts the texture data
         frameBufferNode.xScale = scaley;
     }
     else
     {
         // fit to width
-        float scalex = (float)viewSize.width / ((float)width + 32);
+        float scalex = (float)viewSize.width / ((float)w + 32);
         frameBufferNode.yScale = -scalex; // flip the Y since OpenGL inverts the texture data
         frameBufferNode.xScale = scalex;
+    }
+
+    if (aspecthx2)
+    {
+        frameBufferNode.yScale *= 2;
     }
     
     float x = viewSize.width / 2;
     float y = viewSize.height / 2;
-
+    
     for (int i = 0; i < gameListCount; i++)
     {
         float lx = viewSize.width / 2.5f;
@@ -397,6 +416,7 @@ void fillBufferData(UINT32 *buf, int width, int height)
             gameListDesc[i].hidden = NO;
         }
     }
+    // experimental touch buttons (not working yet)
     if (coinButtonLabel != nil)
     {
         coinButtonLabel.position = CGPointMake(-x + 64, y - 64);

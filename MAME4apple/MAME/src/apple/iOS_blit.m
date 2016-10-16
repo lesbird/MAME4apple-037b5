@@ -11,6 +11,7 @@
 
 extern bitmap_t *screen;
 
+// funtion to blit the mame screen to a mutable texture buffer which is a 32 bit osd_bitmap
 void ios_blit(struct osd_bitmap *bitmap)
 {
     struct osd_bitmap *dstbitmap = screen->bitmap;
