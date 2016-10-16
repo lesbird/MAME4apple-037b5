@@ -4,7 +4,7 @@ MAME 0.37B5 for iOS devices. 64-bit, rebuilt from the original 0.37B5 source cod
 
 Uses SKMutableTexture for the render surface.
 
-Supports MFi controllers (as of initial commit the only option - iCade hopefully soon).
+Supports MFi controllers and iCade.
 
 Based on the original MAME 0.37B5 source code, not the iMAME4All GP2X port, so the MAME4all rom set will work perfectly. The entire project has been designed for iOS devices, a known platform, so there is no need for a MAME.CFG file to turn on or off features.
 
