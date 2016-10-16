@@ -6,6 +6,19 @@
 
 #define IOS_BUILD 1
 
+enum iCadeButtonEnum
+{
+    ICADEBUTTON_A,
+    ICADEBUTTON_B,
+    ICADEBUTTON_C,
+    ICADEBUTTON_D,
+    ICADEBUTTON_E,
+    ICADEBUTTON_F,
+    ICADEBUTTON_G,
+    ICADEBUTTON_H,
+    ICADEBUTTON_MAX
+};
+
 typedef struct
 {
     unsigned port;

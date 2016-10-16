@@ -7,7 +7,8 @@
 //
 
 #import <SpriteKit/SpriteKit.h>
+#import "iCadeReaderView.h"
 
-@interface GameScene : SKScene<UITableViewDelegate, UITableViewDataSource>
+@interface GameScene : SKScene<UITableViewDelegate, UITableViewDataSource, iCadeEventDelegate>
 
 @end

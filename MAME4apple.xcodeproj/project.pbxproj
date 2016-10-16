@@ -2120,6 +2120,7 @@
 		21626FC51DB29EBA005AA8E6 /* libz.tbd in Frameworks */ = {isa = PBXBuildFile; fileRef = 21626FC41DB29EBA005AA8E6 /* libz.tbd */; };
 		21626FC71DB29EDC005AA8E6 /* GameController.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 21626FC61DB29EDC005AA8E6 /* GameController.framework */; };
 		21FC930F1DAAD37B005EB49B /* 1024x1024.jpg in Resources */ = {isa = PBXBuildFile; fileRef = 21FC930E1DAAD37B005EB49B /* 1024x1024.jpg */; };
+		21FCE46A1DB3CF040057162E /* iCadeReaderView.m in Sources */ = {isa = PBXBuildFile; fileRef = 21FCE4681DB3CF040057162E /* iCadeReaderView.m */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -3511,6 +3512,9 @@
 		21626FC41DB29EBA005AA8E6 /* libz.tbd */ = {isa = PBXFileReference; lastKnownFileType = "sourcecode.text-based-dylib-definition"; name = libz.tbd; path = Platforms/AppleTVOS.platform/Developer/SDKs/AppleTVOS10.0.sdk/usr/lib/libz.tbd; sourceTree = DEVELOPER_DIR; };
 		21626FC61DB29EDC005AA8E6 /* GameController.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = GameController.framework; path = Platforms/AppleTVOS.platform/Developer/SDKs/AppleTVOS10.0.sdk/System/Library/Frameworks/GameController.framework; sourceTree = DEVELOPER_DIR; };
 		21FC930E1DAAD37B005EB49B /* 1024x1024.jpg */ = {isa = PBXFileReference; lastKnownFileType = image.jpeg; path = 1024x1024.jpg; sourceTree = "<group>"; };
+		21FCE4671DB3CF040057162E /* iCadeReaderView.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = iCadeReaderView.h; sourceTree = "<group>"; };
+		21FCE4681DB3CF040057162E /* iCadeReaderView.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = iCadeReaderView.m; sourceTree = "<group>"; };
+		21FCE4691DB3CF040057162E /* iCadeState.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = iCadeState.h; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -3557,6 +3561,7 @@
 		213B10631DA67C6100DC1F1F /* MAME4apple */ = {
 			isa = PBXGroup;
 			children = (
+				21FCE4661DB3CF040057162E /* iCade */,
 				213B10871DA67D6400DC1F1F /* MAME */,
 				213B10671DA67C6100DC1F1F /* AppDelegate.h */,
 				213B10681DA67C6100DC1F1F /* AppDelegate.m */,
@@ -5257,6 +5262,16 @@
 			name = "Supporting Files";
 			sourceTree = "<group>";
 		};
+		21FCE4661DB3CF040057162E /* iCade */ = {
+			isa = PBXGroup;
+			children = (
+				21FCE4671DB3CF040057162E /* iCadeReaderView.h */,
+				21FCE4681DB3CF040057162E /* iCadeReaderView.m */,
+				21FCE4691DB3CF040057162E /* iCadeState.h */,
+			);
+			path = iCade;
+			sourceTree = "<group>";
+		};
 /* End PBXGroup section */
 
 /* Begin PBXNativeTarget section */
@@ -5653,6 +5668,7 @@
 				213B17971DA67D6700DC1F1F /* stactics.c in Sources */,
 				213B17E61DA67D6700DC1F1F /* z80bw.c in Sources */,
 				213B17FA1DA67D6700DC1F1F /* astrocde.c in Sources */,
+				21FCE46A1DB3CF040057162E /* iCadeReaderView.m in Sources */,
 				213B17F61DA67D6700DC1F1F /* 8255ppi.c in Sources */,
 				213B189E1DA67D6700DC1F1F /* timeplt.c in Sources */,
 				213B19541DA67D6800DC1F1F /* flstory.c in Sources */,

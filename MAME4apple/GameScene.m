@@ -165,6 +165,12 @@ int list_step = 40; // gap between lines in game list
     debugTouchSprite.fillColor = [UIColor whiteColor];
     debugTouchSprite.hidden = YES;
     [self addChild:debugTouchSprite];
+
+    // for iCade support
+    iCadeReaderView *control = [[iCadeReaderView alloc] initWithFrame:CGRectZero];
+    [self.view addSubview:control];
+    control.active = YES;
+    control.delegate = self;
     
     self.backgroundColor = [UIColor blackColor];
     
@@ -194,6 +200,89 @@ int list_step = 40; // gap between lines in game list
     // sort array
     qsort(gameDriverList, gameDriverCount, sizeof(GameDriverList_t), sortByDesc);
 }
+
+// iCade support
+CGPoint iCadeStickCenter;
+BOOL iCadeButtonState[ICADEBUTTON_MAX];
+
+- (void)setState:(BOOL)state forButton:(iCadeState)button
+{
+    CGPoint center =  iCadeStickCenter;
+    const CGFloat offset = 50.0f;
+    
+    switch (button) {
+        case iCadeButtonA:
+            iCadeButtonState[ICADEBUTTON_A] = state;
+            break;
+        case iCadeButtonB:
+            iCadeButtonState[ICADEBUTTON_B] = state;
+            break;
+        case iCadeButtonC:
+            iCadeButtonState[ICADEBUTTON_C] = state;
+            break;
+        case iCadeButtonD:
+            iCadeButtonState[ICADEBUTTON_D] = state;
+            break;
+        case iCadeButtonE:
+            iCadeButtonState[ICADEBUTTON_E] = state;
+            break;
+        case iCadeButtonF:
+            iCadeButtonState[ICADEBUTTON_F] = state;
+            break;
+        case iCadeButtonG:
+            iCadeButtonState[ICADEBUTTON_G] = state;
+            break;
+        case iCadeButtonH:
+            iCadeButtonState[ICADEBUTTON_H] = state;
+            break;
+            
+        case iCadeJoystickUp:
+            if (state) {
+                center.y -= offset;
+            } else {
+                center.y += offset;
+            }
+            break;
+        case iCadeJoystickRight:
+            if (state) {
+                center.x += offset;
+            } else {
+                center.x -= offset;
+            }
+            break;
+        case iCadeJoystickDown:
+            if (state) {
+                center.y += offset;
+            } else {
+                center.y -= offset;
+            }
+            break;
+        case iCadeJoystickLeft:
+            if (state) {
+                center.x -= offset;
+            } else {
+                center.x += offset;
+            }
+            break;
+            
+        default:
+            break;
+    }
+    iCadeStickCenter = center;
+    
+    //NSLog(@"setState state=%d button=%d", state, button);
+}
+
+- (void)buttonDown:(iCadeState)button
+{
+    [self setState:YES forButton:button];
+}
+
+- (void)buttonUp:(iCadeState)button
+{
+    [self setState:NO forButton:button];
+}
+// iCade support end
 
 int sortByDesc(const void *game1, const void *game2)
 {
@@ -690,6 +779,51 @@ float slideAccumulatorX;
             }
         }
     }
+    
+    // iCade controls
+    else if (iCadeStickCenter.y > 0)
+    {
+        if (iCadeButtonState[ICADEBUTTON_H])
+        {
+            update_list = [self next_game:9];
+        }
+        else
+        {
+            update_list = [self next_game:1];
+        }
+    }
+    else if (iCadeStickCenter.y < 0)
+    {
+        if (iCadeButtonState[ICADEBUTTON_H])
+        {
+            update_list = [self prev_game:9];
+        }
+        else
+        {
+            update_list = [self prev_game:1];
+        }
+    }
+    else if (iCadeStickCenter.x > 0)
+    {
+        update_list = [self next_section];
+    }
+    else if (iCadeStickCenter.x < 0)
+    {
+        update_list = [self prev_section];
+    }
+    else if (iCadeButtonState[ICADEBUTTON_A])
+    {
+        if (!buttonPress)
+        {
+            buttonPress = TRUE;
+            runState = 1;
+        }
+    }
+    else
+    {
+        buttonPress = FALSE;
+    }
+    
     // handle touch controls
     {
         if (scrollDir > 0)

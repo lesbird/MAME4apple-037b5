@@ -20,6 +20,9 @@ extern int touchInputY;
 extern int touchTapCount;
 extern CGPoint startTouchPos;
 
+extern CGPoint iCadeStickCenter;
+extern BOOL iCadeButtonState[ICADEBUTTON_MAX];
+
 enum
 {
     KEY_A, KEY_B, KEY_C, KEY_D, KEY_E,  // 0
@@ -277,27 +280,61 @@ void update_key_array()
         }
     }
 
+    if (iCadeButtonState[ICADEBUTTON_A])
+    {
+        key[KEY_LCONTROL] = 1;
+        key[KEY_ENTER] = 1;
+    }
+    if (iCadeButtonState[ICADEBUTTON_C])
+    {
+        key[KEY_ALT] = 1;
+    }
+    if (iCadeButtonState[ICADEBUTTON_E])
+    {
+        key[KEY_SPACE] = 1;
+    }
+    if (iCadeButtonState[ICADEBUTTON_B])
+    {
+        key[KEY_LSHIFT] = 1;
+    }
+    if (iCadeButtonState[ICADEBUTTON_G])
+    {
+        key[KEY_5] = 1;
+    }
+    if (iCadeButtonState[ICADEBUTTON_H])
+    {
+        if (iCadeButtonState[ICADEBUTTON_B])
+        {
+            key[KEY_ESC] = 1;
+        }
+        else
+        {
+            key[KEY_1] = 1;
+        }
+    }
+    
     // analog stick left
-    if (joyAnalogLeftY[0] < -joyAnalogDeadzone)
+    if (joyAnalogLeftY[0] < -joyAnalogDeadzone || iCadeStickCenter.y > 0)
     {
         key[KEY_DOWN] = 1;
         key[KEY_D] = 1;
     }
-    if (joyAnalogLeftY[0] > joyAnalogDeadzone)
+    if (joyAnalogLeftY[0] > joyAnalogDeadzone || iCadeStickCenter.y < 0)
     {
         key[KEY_UP] = 1;
         key[KEY_E] = 1;
     }
-    if (joyAnalogLeftX[0] < -joyAnalogDeadzone)
+    if (joyAnalogLeftX[0] < -joyAnalogDeadzone || iCadeStickCenter.x < 0)
     {
         key[KEY_LEFT] = 1;
         key[KEY_S] = 1;
     }
-    if (joyAnalogLeftX[0] > joyAnalogDeadzone)
+    if (joyAnalogLeftX[0] > joyAnalogDeadzone || iCadeStickCenter.x > 0)
     {
         key[KEY_RIGHT] = 1;
         key[KEY_F] = 1;
     }
+    
     // analog stick right
     if (joyAnalogRightY[0] < -joyAnalogDeadzone)
     {
