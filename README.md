@@ -23,10 +23,10 @@ All "supported" MAME4ALL games are working (although I have not tested all 2000+
 Framerate for games I tested so far is smooth.
 Audio works but is not perfect.
 Graphics work for all tested games but some games do not display properly (scaling to fit screen dimensions).
+iCade and MFi controllers
 
 What's not working:
 Artwork overlays aren't working yet.
-iCade not supported yet.
 Touch controls not supported yet.
 No MAME.CFG file supported.
 Vector graphics beam width can not be scaled yet.
