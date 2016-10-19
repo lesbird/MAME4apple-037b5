@@ -39,6 +39,25 @@ SKNode *buttonLayerNode;
 
 SKShapeNode *debugTouchSprite;
 
+SKShapeNode *onscreenJoystickLeft;
+SKShapeNode *onscreenNubLeft;
+CGPoint onscreenJoystickLeftAnchor;
+
+SKShapeNode *onscreenJoystickRight;
+SKShapeNode *onscreenNubRight;
+CGPoint onscreenJoystickRightAnchor;
+
+UINT32 onscreenButton[ONSCREEN_BUTTON_MAX];
+SKShapeNode *onscreenButtonSprite[ONSCREEN_BUTTON_MAX];
+// button positions - percentage of screen width/height
+float onscreenButtonX[ONSCREEN_BUTTON_MAX] = { 0.8f, 0.9f, 0.7f, 0.8f, 0.2f, 0.4f, 0.6f, 0.8f};
+float onscreenButtonY[ONSCREEN_BUTTON_MAX] = { 0.7f, 0.5f, 0.5f, 0.3f, 0.8f, 0.8f, 0.8f, 0.8f};
+float onscreenButtonSize = 40;
+
+SKShapeNode *coinButtonSprite;
+SKShapeNode *startButtonSprite;
+SKShapeNode *exitButtonSprite;
+
 typedef struct GameDriverList
 {
     struct GameDriver *gameDriver;
@@ -59,8 +78,8 @@ double deltaTime;
 double prevTime;
 
 // touch vars
-float scrollDir;
-float swipeSens = 10;
+float touchAdvTimer;
+float touchAdvDelay = 0.1f;
 NSUInteger touchTapCount;
 
 // front end vars
@@ -104,6 +123,7 @@ int list_step = 40; // gap between lines in game list
     [self initAndSortDriverArray];
     
     gameListNode = [SKNode node];
+    gameListNode.name = @"gamelistnode";
     [self addChild:gameListNode];
 
     viewSize = view.bounds.size;
@@ -129,6 +149,7 @@ int list_step = 40; // gap between lines in game list
     {
         float y = (list_height / 2) - (list_step / 2) - (i * list_step);
         gameList[i] = [SKLabelNode labelNodeWithText:@"game"];
+        gameList[i].name = @"gamelistlabel";
         gameList[i].position = CGPointMake(x, y);
         gameList[i].horizontalAlignmentMode = SKLabelHorizontalAlignmentModeLeft;
         gameList[i].fontName = @"Courier-Bold";
@@ -136,6 +157,7 @@ int list_step = 40; // gap between lines in game list
         [gameListNode addChild:gameList[i]];
         y -= 15;
         gameListDesc[i] = [SKLabelNode labelNodeWithText:@"desc"];
+        gameListDesc[i].name = @"gamelistdesc";
         gameListDesc[i].position = CGPointMake(x, y);
         gameListDesc[i].horizontalAlignmentMode = SKLabelHorizontalAlignmentModeLeft;
         gameListDesc[i].fontName = @"Courier-Bold";
@@ -148,7 +170,10 @@ int list_step = 40; // gap between lines in game list
     [self updateGameList];
 #endif
     
+    [self initFrameBuffer];
+    
     gameCountLabel = [SKLabelNode labelNodeWithText:@""];
+    gameCountLabel.name = @"gamecountlabel";
     gameCountLabel.position = CGPointMake(-(width / 2) + 16, -(height / 2) + 0);
     gameCountLabel.horizontalAlignmentMode = SKLabelHorizontalAlignmentModeLeft;
     gameCountLabel.fontName = @"Courier-Bold";
@@ -156,12 +181,16 @@ int list_step = 40; // gap between lines in game list
     [gameListNode addChild:gameCountLabel];
     
     versionLabel = [SKLabelNode labelNodeWithText:[NSString stringWithFormat:@"MAME4apple %s 2016 by Les Bird (www.lesbird.com)", VERSION_STRING]];
+    versionLabel.name = @"versionlabel";
     versionLabel.position = CGPointMake(0, -(height / 2) + 16);
     versionLabel.fontName = @"Courier-Bold";
     versionLabel.fontSize = 20;
     [gameListNode addChild:versionLabel];
+
+    [self initOnscreenControls];
     
     debugTouchSprite = [SKShapeNode shapeNodeWithCircleOfRadius:32];
+    debugTouchSprite.name = @"debugtouchsprite";
     debugTouchSprite.fillColor = [UIColor whiteColor];
     debugTouchSprite.hidden = YES;
     [self addChild:debugTouchSprite];
@@ -199,6 +228,79 @@ int list_step = 40; // gap between lines in game list
     
     // sort array
     qsort(gameDriverList, gameDriverCount, sizeof(GameDriverList_t), sortByDesc);
+}
+
+-(void)initOnscreenControls
+{
+    // left side joystick
+    onscreenJoystickLeftAnchor = CGPointMake(-256, -256);
+    onscreenJoystickLeft = [SKShapeNode shapeNodeWithCircleOfRadius:64];
+    onscreenJoystickLeft.name = @"joystickleft";
+    onscreenJoystickLeft.position = onscreenJoystickLeftAnchor;
+    onscreenJoystickLeft.fillColor = [UIColor darkGrayColor];
+    onscreenJoystickLeft.alpha = 0.2f;
+    [self addChild:onscreenJoystickLeft];
+    
+    onscreenNubLeft = [SKShapeNode shapeNodeWithCircleOfRadius:32];
+    onscreenNubLeft.name = @"nubleft";
+    onscreenNubLeft.fillColor = [UIColor redColor];
+    [onscreenJoystickLeft addChild:onscreenNubLeft];
+    
+    onscreenJoystickLeft.hidden = YES;
+
+    // right side joystick
+    onscreenJoystickRightAnchor = CGPointMake(-256, -256);
+    onscreenJoystickRight = [SKShapeNode shapeNodeWithCircleOfRadius:64];
+    onscreenJoystickRight.name = @"joystickright";
+    onscreenJoystickRight.position = onscreenJoystickRightAnchor;
+    onscreenJoystickRight.fillColor = [UIColor darkGrayColor];
+    onscreenJoystickRight.alpha = 0.2f;
+    [self addChild:onscreenJoystickRight];
+    
+    onscreenNubRight = [SKShapeNode shapeNodeWithCircleOfRadius:32];
+    onscreenJoystickLeft.name = @"nubright";
+    onscreenNubRight.fillColor = [UIColor greenColor];
+    [onscreenJoystickRight addChild:onscreenNubRight];
+    
+    onscreenJoystickRight.hidden = YES;
+
+    // onscreen buttons
+    CGPoint buttonPos;
+    float w = viewSize.width / 2;
+    float h = viewSize.height / 2;
+    onscreenButtonSprite[ONSCREEN_BUTTON_A] = [SKShapeNode shapeNodeWithCircleOfRadius:onscreenButtonSize];
+    onscreenButtonSprite[ONSCREEN_BUTTON_A].name = @"button_a";
+    buttonPos = CGPointMake(w * onscreenButtonX[ONSCREEN_BUTTON_A], -h * onscreenButtonY[ONSCREEN_BUTTON_A]);
+    onscreenButtonSprite[ONSCREEN_BUTTON_A].position = buttonPos;
+    onscreenButtonSprite[ONSCREEN_BUTTON_A].fillColor = [UIColor greenColor];
+    onscreenButtonSprite[ONSCREEN_BUTTON_A].alpha = 0.5f;
+    [self addChild:onscreenButtonSprite[ONSCREEN_BUTTON_A]];
+
+    onscreenButtonSprite[ONSCREEN_BUTTON_B] = [SKShapeNode shapeNodeWithCircleOfRadius:onscreenButtonSize];
+    onscreenButtonSprite[ONSCREEN_BUTTON_B].name = @"button_b";
+    buttonPos = CGPointMake(w * onscreenButtonX[ONSCREEN_BUTTON_B], -h * onscreenButtonY[ONSCREEN_BUTTON_B]);
+    onscreenButtonSprite[ONSCREEN_BUTTON_B].position = buttonPos;
+    onscreenButtonSprite[ONSCREEN_BUTTON_B].fillColor = [UIColor redColor];
+    onscreenButtonSprite[ONSCREEN_BUTTON_B].alpha = 0.5f;
+    [self addChild:onscreenButtonSprite[ONSCREEN_BUTTON_B]];
+    
+    onscreenButtonSprite[ONSCREEN_BUTTON_C] = [SKShapeNode shapeNodeWithCircleOfRadius:onscreenButtonSize];
+    onscreenButtonSprite[ONSCREEN_BUTTON_C].name = @"button_c";
+    buttonPos = CGPointMake(w * onscreenButtonX[ONSCREEN_BUTTON_C], -h * onscreenButtonY[ONSCREEN_BUTTON_C]);
+    onscreenButtonSprite[ONSCREEN_BUTTON_C].position = buttonPos;
+    onscreenButtonSprite[ONSCREEN_BUTTON_C].fillColor = [UIColor blueColor];
+    onscreenButtonSprite[ONSCREEN_BUTTON_C].alpha = 0.5f;
+    [self addChild:onscreenButtonSprite[ONSCREEN_BUTTON_C]];
+    
+    onscreenButtonSprite[ONSCREEN_BUTTON_D] = [SKShapeNode shapeNodeWithCircleOfRadius:onscreenButtonSize];
+    onscreenButtonSprite[ONSCREEN_BUTTON_D].name = @"button_d";
+    buttonPos = CGPointMake(w * onscreenButtonX[ONSCREEN_BUTTON_D], -h * onscreenButtonY[ONSCREEN_BUTTON_D]);
+    onscreenButtonSprite[ONSCREEN_BUTTON_D].position = buttonPos;
+    onscreenButtonSprite[ONSCREEN_BUTTON_D].fillColor = [UIColor yellowColor];
+    onscreenButtonSprite[ONSCREEN_BUTTON_D].alpha = 0.5f;
+    [self addChild:onscreenButtonSprite[ONSCREEN_BUTTON_D]];
+    
+    [self handleOnscreenButtonsEnable:NO];
 }
 
 // iCade support
@@ -284,6 +386,7 @@ BOOL iCadeButtonState[ICADEBUTTON_MAX];
 }
 // iCade support end
 
+// sorting functions
 int sortByDesc(const void *game1, const void *game2)
 {
     const GameDriverList_t *ptr1 = (GameDriverList_t *)game1;
@@ -305,6 +408,7 @@ int sortByManufacturer(const void *game1, const void *game2)
     return strcmp(ptr1->gameDriver->manufacturer, ptr2->gameDriver->manufacturer);
 }
 
+// C function that calls into Objective-C function to allocate a frame buffer
 void objc_alloc_framebuffer(int width, int height, int depth, int attributes, int orientation)
 {
     [myObjectSelf alloc_frame_buffer:width :height :depth :attributes :orientation];
@@ -316,81 +420,37 @@ SKSpriteNode *testSpriteNode2;
 UINT32 gameScreenWidth;
 UINT32 gameScreenHeight;
 
-// allocate a frame buffer for the emulated game
--(void)alloc_frame_buffer:(int)width :(int)height :(int)depth :(int)attributes :(int)orientation
+-(void)initFrameBuffer
 {
-    UINT32 screenWidth = self.view.bounds.size.width;
-    UINT32 screenHeight = self.view.bounds.size.height;
-
-    gameScreenWidth = width;
-    gameScreenHeight = height;
-    
     UINT32 bufferWidth = 1024;
     UINT32 bufferHeight = 1024;
     
-    if (screen == nil)
-    {
-        screen = (bitmap_t *)malloc(sizeof(bitmap_t));
-        screen->bitmap = osd_alloc_bitmap(bufferWidth, bufferHeight, 32);
-        frameBufferData = (UINT32 *)screen->bitmap->_private;
+    screen = (bitmap_t *)malloc(sizeof(bitmap_t));
+    screen->bitmap = osd_alloc_bitmap(bufferWidth, bufferHeight, 32);
+    frameBufferData = (UINT32 *)screen->bitmap->_private;
+    
+    long w = screen->bitmap->line[1] - screen->bitmap->line[0];
+    long h = bufferHeight;
+    
+    //NSLog(@"screenSize=%d,%d gameScreenSize=%d,%d frameBufferSize=%ld,%ld", screenWidth, screenHeight, width, height, w, h);
+    
+    UINT32 w4 = (UINT32)w / 4;
+    
+    NSLog(@"textureSize=%d,%d", w4, (UINT32)h);
+    frameBuffer = [SKMutableTexture mutableTextureWithSize:CGSizeMake(w4, h)];
+    frameBufferNode = [SKSpriteNode spriteNodeWithTexture:frameBuffer];
+    frameBufferNode.name = @"framebuffernode";
+    frameBufferNode.position = CGPointMake(0, 32);
+    [self addChild:frameBufferNode];
+}
 
-        long w = screen->bitmap->line[1] - screen->bitmap->line[0];
-        long h = bufferHeight;
-        
-        NSLog(@"screenSize=%d,%d gameScreenSize=%d,%d frameBufferSize=%ld,%ld", screenWidth, screenHeight, width, height, w, h);
-        
-        UINT32 w4 = (UINT32)w / 4;
-        //fillBufferData(frameBufferData, w4, (UINT32)h);
-        
-        NSLog(@"textureSize=%d,%d", w4, (UINT32)h);
-        frameBuffer = [SKMutableTexture mutableTextureWithSize:CGSizeMake(w4, h)];
-        frameBufferNode = [SKSpriteNode spriteNodeWithTexture:frameBuffer];
-        frameBufferNode.position = CGPointMake(0, 32);
-        [self addChild:frameBufferNode];
-        
-        /* touch buttons - disabled for now
-        buttonLayerNode = [SKNode node];
-        [self addChild:buttonLayerNode];
-        
-        float x = screenWidth / 2;
-        float y = screenHeight / 2;
-        coinButtonLabel = [SKLabelNode labelNodeWithText:@"COIN"];
-        coinButtonLabel.position = CGPointMake(-x + 64, y - 64);
-        coinButtonLabel.fontName = @"Courier-Bold";
-        coinButtonLabel.fontSize = 24;
-        [buttonLayerNode addChild:coinButtonLabel];
-        
-        startButtonLabel = [SKLabelNode labelNodeWithText:@"START"];
-        startButtonLabel.position = CGPointMake(x - 64, y - 64);
-        startButtonLabel.fontName = @"Courier-Bold";
-        startButtonLabel.fontSize = 24;
-        [buttonLayerNode addChild:startButtonLabel];
-        
-        exitButtonLabel = [SKLabelNode labelNodeWithText:@"EXIT"];
-        exitButtonLabel.position = CGPointMake(-x + 64, -y + 64);
-        exitButtonLabel.fontName = @"Courier-Bold";
-        exitButtonLabel.fontSize = 24;
-        [self addChild:exitButtonLabel];
-         */
-    }
+// allocate a frame buffer for the emulated game
+-(void)alloc_frame_buffer:(int)width :(int)height :(int)depth :(int)attributes :(int)orientation
+{
+    gameScreenWidth = width;
+    gameScreenHeight = height;
     
     [self computeFrameBufferScale:gameScreenWidth height:gameScreenHeight];
-
-    /* debug to check centering
-    if (testSpriteNode == nil)
-    {
-        testSpriteNode = [SKSpriteNode spriteNodeWithImageNamed:@"1024x1024.jpg"];
-        [self addChild:testSpriteNode];
-    }
-    
-    if (testSpriteNode2 == nil)
-    {
-        testSpriteNode2 = [SKSpriteNode spriteNodeWithImageNamed:@"1024x1024.jpg"];
-        testSpriteNode2.xScale = 0.3f;
-        testSpriteNode2.yScale = 0.3f;
-        [self addChild:testSpriteNode2];
-    }
-    */
     
     // run the render loop in another thread (experimental and not needed)
     //[NSThread detachNewThreadSelector:@selector(renderLoop) toTarget:self withObject:nil];
@@ -401,23 +461,6 @@ UINT32 gameScreenHeight;
 // free the game frame buffer
 -(void)free_frame_buffer
 {
-    /*
-    if (screen != nil)
-    {
-        //if (game_bitmap_update == 0)
-        {
-            [frameBufferNode removeFromParent];
-            [frameBufferNode setTexture:nil];
-            frameBuffer = nil;
-
-            osd_free_bitmap(screen->bitmap);
-            free(screen);
-        
-            screen = nil;
-        }
-    }
-     */
-    
     osd_clearbitmap(screen->bitmap);
     game_bitmap_update = 1; // force a texture update
     
@@ -446,7 +489,7 @@ void fillBufferData(UINT32 *buf, int width, int height)
 // scale to fit screen orientation
 -(void)computeFrameBufferScale:(UINT32)width height:(UINT32)height
 {
-    bool aspecthx2 = false;
+    BOOL aspecthx2 = NO;
     
     UINT32 w = width;
     UINT32 h = height;
@@ -455,7 +498,7 @@ void fillBufferData(UINT32 *buf, int width, int height)
         // handle oddball aspect ratios like Blasteroids
         if ((Machine->drv->video_attributes & VIDEO_PIXEL_ASPECT_RATIO_1_2) != 0)
         {
-            aspecthx2 = true;
+            aspecthx2 = YES;
             h *= 2;
         }
     }
@@ -523,52 +566,154 @@ void fillBufferData(UINT32 *buf, int width, int height)
     versionLabel.position = CGPointMake(0, -y + 16);
 }
 
+CGPoint CGPointClamp(CGPoint p, float range)
+{
+    float dx = p.x;
+    float dy = p.y;
+    float dist = sqrtf((dx * dx) + (dy * dy));
+    if (dist > range)
+    {
+        dx /= dist;
+        dy /= dist;
+        dx *= range;
+        dy *= range;
+    }
+    return CGPointMake(dx, dy);
+}
+
+-(void)handleOnscreenButtonsEnable:(BOOL)on
+{
+    for (int i = 0; i < ONSCREEN_BUTTON_MAX; i++)
+    {
+        if (onscreenButtonSprite[i] != nil)
+        {
+            onscreenButtonSprite[i].hidden = (on ? NO : YES);
+        }
+    }
+}
+
+-(void)handleOnscreenJoystickAnchor:(CGPoint)touchPos
+{
+    if (touchPos.x < 0)
+    {
+        onscreenJoystickLeftAnchor = touchPos;
+        onscreenJoystickLeft.position = touchPos;
+        onscreenNubLeft.position = CGPointZero;
+        onscreenJoystickLeft.hidden = NO;
+    }
+    
+    if (touchPos.x > 0)
+    {
+    }
+    
+}
+
+-(void)handleOnscreenJoystickMove:(CGPoint)touchPos
+{
+    if (touchPos.x < 0)
+    {
+        CGPoint offset = CGPointMake(touchPos.x - onscreenJoystickLeftAnchor.x, touchPos.y - onscreenJoystickLeftAnchor.y);
+        offset = CGPointClamp(offset, 64);
+        onscreenNubLeft.position = offset;
+        touchInputX = offset.x / 8.0f;
+        touchInputY = offset.y / 8.0f;
+    }
+}
+
+-(void)handleOnscreenJoystickOff:(CGPoint)touchPos
+{
+    if (touchPos.x < 0)
+    {
+        onscreenJoystickLeft.hidden = YES;
+    }
+}
+
+-(void)handleOnscreenButtons:(CGPoint)touchPos on:(BOOL)on
+{
+    int nearestIndex = -1;
+    SKNode *node = [self nodeAtPoint:touchPos];
+    if (node != nil)
+    {
+        //NSLog(@"touched node=%@", node.name);
+        for (int i = 0; i < ONSCREEN_BUTTON_MAX; i++)
+        {
+            if (onscreenButtonSprite[i] != nil && onscreenButtonSprite[i].hidden == NO)
+            {
+                if (onscreenButtonSprite[i] == node)
+                {
+                    nearestIndex = i;
+                    break;
+                }
+            }
+        }
+        if (nearestIndex >= 0)
+        {
+            if (on)
+            {
+                onscreenButtonSprite[nearestIndex].fillColor = [UIColor darkGrayColor];
+            }
+            else
+            {
+                UIColor *color = nil;
+                switch (nearestIndex)
+                {
+                    case ONSCREEN_BUTTON_A:
+                        color = [UIColor greenColor];
+                        break;
+                    case ONSCREEN_BUTTON_B:
+                        color = [UIColor redColor];
+                        break;
+                    case ONSCREEN_BUTTON_C:
+                        color = [UIColor blueColor];
+                        break;
+                    case ONSCREEN_BUTTON_D:
+                        color = [UIColor yellowColor];
+                        break;
+                }
+                if (color != nil)
+                {
+                    onscreenButtonSprite[nearestIndex].fillColor = color;
+                }
+            }
+            onscreenButton[nearestIndex] = (on) ? 1 : 0;
+        }
+    }
+    [self handleOnscreenButtonsEnable:YES];
+}
+
 CGPoint startTouchPos;
 -(void)touchDownAtPoint:(CGPoint)pos
 {
     startTouchPos = pos;
+
+    [self handleOnscreenJoystickAnchor:pos];
+    [self handleOnscreenButtons:pos on:YES];
     
-    debugTouchSprite.hidden = NO;
-    debugTouchSprite.position = startTouchPos;
+    //debugTouchSprite.hidden = NO;
+    //debugTouchSprite.position = startTouchPos;
 }
 
 int touchInputY;
 int touchInputX;
 
-float slideAccumulatorY;
-float slideAccumulatorX;
 -(void)touchMovedToPoint:(CGPoint)pos
 {
-    slideAccumulatorY += pos.y - startTouchPos.y;
-    if (slideAccumulatorY < -swipeSens || slideAccumulatorY > swipeSens)
-    {
-        touchInputY = slideAccumulatorY < 0 ? -1 : 1;
-        scrollDir = slideAccumulatorY;
-        slideAccumulatorY = 0;
-    }
-    
-    slideAccumulatorX += pos.x - startTouchPos.x;
-    if (slideAccumulatorX < -swipeSens || slideAccumulatorX > swipeSens)
-    {
-        touchInputX = slideAccumulatorX < 0 ? -1 : 1;
-        scrollDir = slideAccumulatorX;
-        slideAccumulatorX = 0;
-    }
+    [self handleOnscreenJoystickMove:pos];
     
     startTouchPos = pos;
     
-    debugTouchSprite.position = startTouchPos;
+    //debugTouchSprite.position = startTouchPos;
 }
 
 -(void)touchUpAtPoint:(CGPoint)pos
 {
-    slideAccumulatorX = 0;
-    slideAccumulatorY = 0;
     touchInputX = 0;
     touchInputY = 0;
-    scrollDir = 0;
     
-    debugTouchSprite.hidden = YES;
+    [self handleOnscreenJoystickOff:pos];
+    [self handleOnscreenButtons:pos on:NO];
+    
+    //debugTouchSprite.hidden = YES;
 }
 
 -(void)touchesBegan:(NSSet *)touches withEvent:(UIEvent *)event
@@ -610,9 +755,9 @@ float slideAccumulatorX;
     {
         selected_game += count;
         selected_game = (selected_game >= gameDriverCount) ? gameDriverCount - 1 : selected_game;
-        return TRUE;
+        return YES;
     }
-    return FALSE;
+    return NO;
 }
 
 -(BOOL)prev_game:(int)count
@@ -621,16 +766,16 @@ float slideAccumulatorX;
     {
         selected_game -= count;
         selected_game = (selected_game > 0) ? selected_game : 0;
-        return TRUE;
+        return YES;
     }
-    return FALSE;
+    return NO;
 }
 
 -(BOOL)next_section
 {
     if (buttonPress)
     {
-        return FALSE;
+        return NO;
     }
     char c = gameDriverList[selected_game].gameDriver->description[0];
     for (int i = selected_game; i < gameDriverCount; i++)
@@ -639,18 +784,18 @@ float slideAccumulatorX;
         {
             //NSLog(@"jumping from %c to %c", c, gameDriverList[i].gameDriver->description[0]);
             selected_game = i;
-            return TRUE;
+            return YES;
         }
     }
     selected_game = gameDriverCount - 1;
-    return TRUE;
+    return YES;
 }
 
 -(BOOL)prev_section
 {
     if (buttonPress)
     {
-        return FALSE;
+        return NO;
     }
     char c = gameDriverList[selected_game].gameDriver->description[0];
     for (int i = selected_game; i >= 0; i--)
@@ -659,11 +804,11 @@ float slideAccumulatorX;
         {
             //NSLog(@"jumping from %c to %c", c, gameDriverList[i].gameDriver->description[0]);
             selected_game = i;
-            return TRUE;
+            return YES;
         }
     }
     selected_game = 0;
-    return TRUE;
+    return YES;
 }
 
 // called 60 times/sec
@@ -728,13 +873,14 @@ float slideAccumulatorX;
 {
 #if USE_TABLEVIEW
 #else
-    BOOL update_list = FALSE;
+    BOOL update_list = NO;
     NSArray *controllerList = [GCController controllers];
     if (controllerList.count > 0)
     {
         GCController *controller = (GCController *)[controllerList objectAtIndex:0];
         if (controller != nil)
         {
+            [self handleOnscreenButtonsEnable:NO];
             if (controller.gamepad.dpad.down.pressed)
             {
                 if (controller.gamepad.rightShoulder.pressed)
@@ -769,13 +915,13 @@ float slideAccumulatorX;
             {
                 if (!buttonPress)
                 {
-                    buttonPress = TRUE;
+                    buttonPress = YES;
                     runState = 1;
                 }
             }
             else
             {
-                buttonPress = FALSE;
+                buttonPress = NO;
             }
         }
     }
@@ -815,39 +961,45 @@ float slideAccumulatorX;
     {
         if (!buttonPress)
         {
-            buttonPress = TRUE;
+            buttonPress = YES;
             runState = 1;
         }
     }
     else
     {
-        buttonPress = FALSE;
+        buttonPress = NO;
     }
     
     // handle touch controls
+    touchAdvTimer += deltaTime;
     {
-        if (scrollDir > 0)
+        if (touchInputY < 0)
         {
-            update_list = [self next_game:1];
-            buttonPress = FALSE;
+            if (touchAdvTimer >= touchAdvDelay)
+            {
+                update_list = [self next_game:1];
+                touchAdvTimer = 0;
+            }
         }
-        else if (scrollDir < 0)
+        else if (touchInputY > 0)
         {
-            update_list = [self prev_game:1];
-            buttonPress = FALSE;
+            if (touchAdvTimer >= touchAdvDelay)
+            {
+                update_list = [self prev_game:1];
+                touchAdvTimer = 0;
+            }
         }
         else if (touchTapCount == 2)
         {
-            buttonPress = FALSE;
+            buttonPress = NO;
             touchTapCount = 0;
             runState = 1;
         }
-        scrollDir = 0;
     }
     if (update_list)
     {
         [self updateGameList];
-        buttonPress = TRUE;
+        buttonPress = YES;
     }
 #endif
 }

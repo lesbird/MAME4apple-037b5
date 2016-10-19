@@ -23,6 +23,8 @@ extern CGPoint startTouchPos;
 extern CGPoint iCadeStickCenter;
 extern BOOL iCadeButtonState[ICADEBUTTON_MAX];
 
+extern UINT32 onscreenButton[ONSCREEN_BUTTON_MAX];
+
 enum
 {
     KEY_A, KEY_B, KEY_C, KEY_D, KEY_E,  // 0
@@ -280,20 +282,20 @@ void update_key_array()
         }
     }
 
-    if (iCadeButtonState[ICADEBUTTON_A])
+    if (iCadeButtonState[ICADEBUTTON_A] || onscreenButton[ONSCREEN_BUTTON_A] != 0)
     {
         key[KEY_LCONTROL] = 1;
         key[KEY_ENTER] = 1;
     }
-    if (iCadeButtonState[ICADEBUTTON_C])
+    if (iCadeButtonState[ICADEBUTTON_C] || onscreenButton[ONSCREEN_BUTTON_B] != 0)
     {
         key[KEY_ALT] = 1;
     }
-    if (iCadeButtonState[ICADEBUTTON_E])
+    if (iCadeButtonState[ICADEBUTTON_E] || onscreenButton[ONSCREEN_BUTTON_C] != 0)
     {
         key[KEY_SPACE] = 1;
     }
-    if (iCadeButtonState[ICADEBUTTON_B])
+    if (iCadeButtonState[ICADEBUTTON_B] || onscreenButton[ONSCREEN_BUTTON_D] != 0)
     {
         key[KEY_LSHIFT] = 1;
     }

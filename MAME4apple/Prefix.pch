@@ -19,6 +19,19 @@ enum iCadeButtonEnum
     ICADEBUTTON_MAX
 };
 
+enum onscreenButtonEnum
+{
+    ONSCREEN_BUTTON_A,
+    ONSCREEN_BUTTON_B,
+    ONSCREEN_BUTTON_C,
+    ONSCREEN_BUTTON_D,
+    ONSCREEN_BUTTON_E,
+    ONSCREEN_BUTTON_F,
+    ONSCREEN_BUTTON_G,
+    ONSCREEN_BUTTON_H,
+    ONSCREEN_BUTTON_MAX
+};
+
 typedef struct
 {
     unsigned port;
