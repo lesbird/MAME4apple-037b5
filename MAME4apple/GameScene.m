@@ -561,6 +561,19 @@ void fillBufferData(UINT32 *buf, int width, int height)
     {
         exitButtonLabel.position = CGPointMake(-x + 64, y + 64);
     }
+    
+    CGPoint buttonPos;
+    buttonPos = CGPointMake(x * onscreenButtonX[ONSCREEN_BUTTON_A], -y * onscreenButtonY[ONSCREEN_BUTTON_A]);
+    onscreenButtonSprite[ONSCREEN_BUTTON_A].position = buttonPos;
+    
+    buttonPos = CGPointMake(x * onscreenButtonX[ONSCREEN_BUTTON_B], -y * onscreenButtonY[ONSCREEN_BUTTON_B]);
+    onscreenButtonSprite[ONSCREEN_BUTTON_B].position = buttonPos;
+    
+    buttonPos = CGPointMake(x * onscreenButtonX[ONSCREEN_BUTTON_C], -y * onscreenButtonY[ONSCREEN_BUTTON_C]);
+    onscreenButtonSprite[ONSCREEN_BUTTON_C].position = buttonPos;
+    
+    buttonPos = CGPointMake(x * onscreenButtonX[ONSCREEN_BUTTON_D], -y * onscreenButtonY[ONSCREEN_BUTTON_D]);
+    onscreenButtonSprite[ONSCREEN_BUTTON_D].position = buttonPos;
 
     gameCountLabel.position = CGPointMake(-x + 16, -y + 16);
     versionLabel.position = CGPointMake(0, -y + 16);
@@ -986,6 +999,22 @@ int touchInputX;
             if (touchAdvTimer >= touchAdvDelay)
             {
                 update_list = [self prev_game:1];
+                touchAdvTimer = 0;
+            }
+        }
+        else if (touchInputX > 0)
+        {
+            if (touchAdvTimer >= touchAdvDelay)
+            {
+                update_list = [self next_game:9];
+                touchAdvTimer = 0;
+            }
+        }
+        else if (touchInputX < 0)
+        {
+            if (touchAdvTimer >= touchAdvDelay)
+            {
+                update_list = [self prev_game:9];
                 touchAdvTimer = 0;
             }
         }
