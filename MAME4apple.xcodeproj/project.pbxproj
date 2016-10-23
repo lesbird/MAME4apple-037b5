@@ -3510,6 +3510,7 @@
 		21626BAA1DB294D9005AA8E6 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 		21626FC41DB29EBA005AA8E6 /* libz.tbd */ = {isa = PBXFileReference; lastKnownFileType = "sourcecode.text-based-dylib-definition"; name = libz.tbd; path = Platforms/AppleTVOS.platform/Developer/SDKs/AppleTVOS10.0.sdk/usr/lib/libz.tbd; sourceTree = DEVELOPER_DIR; };
 		21626FC61DB29EDC005AA8E6 /* GameController.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = GameController.framework; path = Platforms/AppleTVOS.platform/Developer/SDKs/AppleTVOS10.0.sdk/System/Library/Frameworks/GameController.framework; sourceTree = DEVELOPER_DIR; };
+		21A04AF41DBBCD01001948A5 /* MAME4appleTV.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = MAME4appleTV.entitlements; sourceTree = "<group>"; };
 		21FC930E1DAAD37B005EB49B /* 1024x1024.jpg */ = {isa = PBXFileReference; lastKnownFileType = image.jpeg; path = 1024x1024.jpg; sourceTree = "<group>"; };
 		21FCE4671DB3CF040057162E /* iCadeReaderView.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = iCadeReaderView.h; sourceTree = "<group>"; };
 		21FCE4681DB3CF040057162E /* iCadeReaderView.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = iCadeReaderView.m; sourceTree = "<group>"; };
@@ -5236,6 +5237,8 @@
 		21626B921DB294D9005AA8E6 /* MAME4appleTV */ = {
 			isa = PBXGroup;
 			children = (
+				21A04AF41DBBCD01001948A5 /* MAME4appleTV.entitlements */,
+				21A04AF31DBBA1AA001948A5 /* Resources */,
 				21626B961DB294D9005AA8E6 /* AppDelegate.h */,
 				21626B971DB294D9005AA8E6 /* AppDelegate.m */,
 				21626B991DB294D9005AA8E6 /* GameScene.sks */,
@@ -5257,6 +5260,13 @@
 				21626B941DB294D9005AA8E6 /* main.m */,
 			);
 			name = "Supporting Files";
+			sourceTree = "<group>";
+		};
+		21A04AF31DBBA1AA001948A5 /* Resources */ = {
+			isa = PBXGroup;
+			children = (
+			);
+			name = Resources;
 			sourceTree = "<group>";
 		};
 		21FCE4661DB3CF040057162E /* iCade */ = {
@@ -5324,6 +5334,14 @@
 						CreatedOnToolsVersion = 8.0;
 						DevelopmentTeam = A75V2S2HM3;
 						ProvisioningStyle = Automatic;
+						SystemCapabilities = {
+							com.apple.Push = {
+								enabled = 1;
+							};
+							com.apple.iCloud = {
+								enabled = 1;
+							};
+						};
 					};
 				};
 			};
@@ -7654,6 +7672,7 @@
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = "App Icon & Top Shelf Image";
 				ASSETCATALOG_COMPILER_LAUNCHIMAGE_NAME = LaunchImage;
+				CODE_SIGN_ENTITLEMENTS = MAME4appleTV/MAME4appleTV.entitlements;
 				DEVELOPMENT_TEAM = A75V2S2HM3;
 				GCC_PREFIX_HEADER = MAME4apple/Prefix.pch;
 				HEADER_SEARCH_PATHS = "./MAME4apple/MAME/src/**";
@@ -7663,7 +7682,7 @@
 					"-DLSB_FIRST",
 					"-DINLINE=\"static __inline__\"",
 				);
-				PRODUCT_BUNDLE_IDENTIFIER = com.lesbird.MAME4appleTV;
+				PRODUCT_BUNDLE_IDENTIFIER = com.lesbird.MAME4appleTV0;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SDKROOT = appletvos;
 				TARGETED_DEVICE_FAMILY = 3;
@@ -7676,6 +7695,7 @@
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = "App Icon & Top Shelf Image";
 				ASSETCATALOG_COMPILER_LAUNCHIMAGE_NAME = LaunchImage;
+				CODE_SIGN_ENTITLEMENTS = MAME4appleTV/MAME4appleTV.entitlements;
 				DEVELOPMENT_TEAM = A75V2S2HM3;
 				GCC_PREFIX_HEADER = MAME4apple/Prefix.pch;
 				HEADER_SEARCH_PATHS = "./MAME4apple/MAME/src/**";
@@ -7685,7 +7705,7 @@
 					"-DLSB_FIRST",
 					"-DINLINE=\"static __inline__\"",
 				);
-				PRODUCT_BUNDLE_IDENTIFIER = com.lesbird.MAME4appleTV;
+				PRODUCT_BUNDLE_IDENTIFIER = com.lesbird.MAME4appleTV0;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SDKROOT = appletvos;
 				TARGETED_DEVICE_FAMILY = 3;

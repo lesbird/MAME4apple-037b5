@@ -8,6 +8,7 @@
 
 #import "GameScene.h"
 #import <GameController/GameController.h>
+#import <CloudKit/CloudKit.h>
 #include "driver.h"
 
 #define USE_TABLEVIEW 0
@@ -57,6 +58,7 @@ float onscreenButtonSize = 40;
 SKShapeNode *coinButtonSprite;
 SKShapeNode *startButtonSprite;
 SKShapeNode *exitButtonSprite;
+SKShapeNode *sortButtonSprite;
 
 typedef struct GameDriverList
 {
@@ -86,6 +88,8 @@ NSUInteger touchTapCount;
 int selected_game;
 BOOL buttonPress;
 SKLabelNode *gameCountLabel;
+
+int sortMethod;
 
 GameScene *myObjectSelf;
 
@@ -142,7 +146,7 @@ int list_step = 40; // gap between lines in game list
     int width = view.bounds.size.width;
 
     float x = -(width / 2.5f);
-
+    
     gameListCount = height / list_step;
     int list_height = gameListCount * list_step;
     for (int i = 0; i < gameListCount; i++)
@@ -212,22 +216,34 @@ int list_step = 40; // gap between lines in game list
 -(void)initAndSortDriverArray
 {
     // count number of games
-    gameDriverCount = 0;
-    while (drivers[gameDriverCount] != 0)
+    if (gameDriverCount == 0)
     {
-        gameDriverCount++;
-    }
-    
-    // allocate game list array
-    gameDriverList = (GameDriverList_t *)malloc(sizeof(GameDriverList_t) * gameDriverCount);
-    for (int i = 0; i < gameDriverCount; i++)
-    {
-        gameDriverList[i].gameDriver = (struct GameDriver *)drivers[i];
-        gameDriverList[i].gameIndex = i;
+        gameDriverCount = 0;
+        while (drivers[gameDriverCount] != 0)
+        {
+            gameDriverCount++;
+        }
+        
+        // allocate game list array
+        gameDriverList = (GameDriverList_t *)malloc(sizeof(GameDriverList_t) * gameDriverCount);
+        
+        for (int i = 0; i < gameDriverCount; i++)
+        {
+            gameDriverList[i].gameDriver = (struct GameDriver *)drivers[i];
+            gameDriverList[i].gameIndex = i;
+        }
     }
     
     // sort array
-    qsort(gameDriverList, gameDriverCount, sizeof(GameDriverList_t), sortByDesc);
+    switch (sortMethod)
+    {
+        default:
+            qsort(gameDriverList, gameDriverCount, sizeof(GameDriverList_t), sortByDesc);
+            break;
+        case 1:
+            qsort(gameDriverList, gameDriverCount, sizeof(GameDriverList_t), sortByManufacturer);
+            break;
+    }
 }
 
 -(void)initOnscreenControls
@@ -273,7 +289,7 @@ int list_step = 40; // gap between lines in game list
     buttonPos = CGPointMake(w * onscreenButtonX[ONSCREEN_BUTTON_A], -h * onscreenButtonY[ONSCREEN_BUTTON_A]);
     onscreenButtonSprite[ONSCREEN_BUTTON_A].position = buttonPos;
     onscreenButtonSprite[ONSCREEN_BUTTON_A].fillColor = [UIColor greenColor];
-    onscreenButtonSprite[ONSCREEN_BUTTON_A].alpha = 0.5f;
+    onscreenButtonSprite[ONSCREEN_BUTTON_A].alpha = 0.2f;
     [self addChild:onscreenButtonSprite[ONSCREEN_BUTTON_A]];
 
     onscreenButtonSprite[ONSCREEN_BUTTON_B] = [SKShapeNode shapeNodeWithCircleOfRadius:onscreenButtonSize];
@@ -281,7 +297,7 @@ int list_step = 40; // gap between lines in game list
     buttonPos = CGPointMake(w * onscreenButtonX[ONSCREEN_BUTTON_B], -h * onscreenButtonY[ONSCREEN_BUTTON_B]);
     onscreenButtonSprite[ONSCREEN_BUTTON_B].position = buttonPos;
     onscreenButtonSprite[ONSCREEN_BUTTON_B].fillColor = [UIColor redColor];
-    onscreenButtonSprite[ONSCREEN_BUTTON_B].alpha = 0.5f;
+    onscreenButtonSprite[ONSCREEN_BUTTON_B].alpha = 0.2f;
     [self addChild:onscreenButtonSprite[ONSCREEN_BUTTON_B]];
     
     onscreenButtonSprite[ONSCREEN_BUTTON_C] = [SKShapeNode shapeNodeWithCircleOfRadius:onscreenButtonSize];
@@ -289,7 +305,7 @@ int list_step = 40; // gap between lines in game list
     buttonPos = CGPointMake(w * onscreenButtonX[ONSCREEN_BUTTON_C], -h * onscreenButtonY[ONSCREEN_BUTTON_C]);
     onscreenButtonSprite[ONSCREEN_BUTTON_C].position = buttonPos;
     onscreenButtonSprite[ONSCREEN_BUTTON_C].fillColor = [UIColor blueColor];
-    onscreenButtonSprite[ONSCREEN_BUTTON_C].alpha = 0.5f;
+    onscreenButtonSprite[ONSCREEN_BUTTON_C].alpha = 0.2f;
     [self addChild:onscreenButtonSprite[ONSCREEN_BUTTON_C]];
     
     onscreenButtonSprite[ONSCREEN_BUTTON_D] = [SKShapeNode shapeNodeWithCircleOfRadius:onscreenButtonSize];
@@ -297,8 +313,40 @@ int list_step = 40; // gap between lines in game list
     buttonPos = CGPointMake(w * onscreenButtonX[ONSCREEN_BUTTON_D], -h * onscreenButtonY[ONSCREEN_BUTTON_D]);
     onscreenButtonSprite[ONSCREEN_BUTTON_D].position = buttonPos;
     onscreenButtonSprite[ONSCREEN_BUTTON_D].fillColor = [UIColor yellowColor];
-    onscreenButtonSprite[ONSCREEN_BUTTON_D].alpha = 0.5f;
+    onscreenButtonSprite[ONSCREEN_BUTTON_D].alpha = 0.2f;
     [self addChild:onscreenButtonSprite[ONSCREEN_BUTTON_D]];
+    
+    coinButtonSprite = [SKShapeNode shapeNodeWithCircleOfRadius:onscreenButtonSize];
+    coinButtonSprite.name = @"coinbutton";
+    buttonPos = CGPointMake(-w + 16, h - 16);
+    coinButtonSprite.position = buttonPos;
+    coinButtonSprite.fillColor = [UIColor greenColor];
+    coinButtonSprite.alpha = 0.2f;
+    [self addChild:coinButtonSprite];
+    
+    startButtonSprite = [SKShapeNode shapeNodeWithCircleOfRadius:onscreenButtonSize];
+    startButtonSprite.name = @"startbutton";
+    buttonPos = CGPointMake(w - 16, h - 16);
+    startButtonSprite.position = buttonPos;
+    startButtonSprite.fillColor = [UIColor greenColor];
+    startButtonSprite.alpha = 0.2f;
+    [self addChild:startButtonSprite];
+    
+    exitButtonSprite = [SKShapeNode shapeNodeWithCircleOfRadius:onscreenButtonSize];
+    exitButtonSprite.name = @"exitbutton";
+    buttonPos = CGPointMake(-w + 16, -h + 16);
+    exitButtonSprite.position = buttonPos;
+    exitButtonSprite.fillColor = [UIColor redColor];
+    exitButtonSprite.alpha = 0.2f;
+    [self addChild:exitButtonSprite];
+    
+    sortButtonSprite = [SKShapeNode shapeNodeWithCircleOfRadius:onscreenButtonSize];
+    sortButtonSprite.name = @"sortbutton";
+    buttonPos = CGPointMake(0, h - 16);
+    sortButtonSprite.position = buttonPos;
+    sortButtonSprite.fillColor = [UIColor yellowColor];
+    sortButtonSprite.alpha = 0.2f;
+    [self addChild:sortButtonSprite];
     
     [self handleOnscreenButtonsEnable:NO];
 }
@@ -525,14 +573,11 @@ void fillBufferData(UINT32 *buf, int width, int height)
     
     float x = viewSize.width / 2;
     float y = viewSize.height / 2;
-    
+
     for (int i = 0; i < gameListCount; i++)
     {
         float lx = viewSize.width / 2.5f;
-        //if (width == 1920) // apple tv
-        //{
-        //    lx = viewSize.width / 5;
-        //}
+
         float ly1 = gameList[i].position.y;
         gameList[i].position = CGPointMake(-lx, ly1);
         float ly2 = gameListDesc[i].position.y;
@@ -549,18 +594,6 @@ void fillBufferData(UINT32 *buf, int width, int height)
         }
     }
     // experimental touch buttons (not working yet)
-    if (coinButtonLabel != nil)
-    {
-        coinButtonLabel.position = CGPointMake(-x + 64, y - 64);
-    }
-    if (startButtonLabel != nil)
-    {
-        startButtonLabel.position = CGPointMake(x + 64, y - 64);
-    }
-    if (exitButtonLabel != nil)
-    {
-        exitButtonLabel.position = CGPointMake(-x + 64, y + 64);
-    }
     
     CGPoint buttonPos;
     buttonPos = CGPointMake(x * onscreenButtonX[ONSCREEN_BUTTON_A], -y * onscreenButtonY[ONSCREEN_BUTTON_A]);
@@ -575,6 +608,23 @@ void fillBufferData(UINT32 *buf, int width, int height)
     buttonPos = CGPointMake(x * onscreenButtonX[ONSCREEN_BUTTON_D], -y * onscreenButtonY[ONSCREEN_BUTTON_D]);
     onscreenButtonSprite[ONSCREEN_BUTTON_D].position = buttonPos;
 
+    if (coinButtonSprite != nil)
+    {
+        coinButtonSprite.position = CGPointMake(-x + 16, y - 16);
+    }
+    if (startButtonSprite != nil)
+    {
+        startButtonSprite.position = CGPointMake(x - 16, y - 16);
+    }
+    if (exitButtonSprite != nil)
+    {
+        exitButtonSprite.position = CGPointMake(-x + 16, -y + 16);
+    }
+    if (sortButtonSprite != nil)
+    {
+        sortButtonSprite.position = CGPointMake(0, y - 16);
+    }
+    
     gameCountLabel.position = CGPointMake(-x + 16, -y + 16);
     versionLabel.position = CGPointMake(0, -y + 16);
 }
@@ -603,6 +653,10 @@ CGPoint CGPointClamp(CGPoint p, float range)
             onscreenButtonSprite[i].hidden = (on ? NO : YES);
         }
     }
+    coinButtonSprite.hidden = (on ? NO : YES);
+    startButtonSprite.hidden = (on ? NO : YES);
+    exitButtonSprite.hidden = (on ? NO : YES);
+    sortButtonSprite.hidden = (on ? NO : YES);
 }
 
 -(void)handleOnscreenJoystickAnchor:(CGPoint)touchPos
@@ -656,6 +710,25 @@ CGPoint CGPointClamp(CGPoint p, float range)
                 {
                     nearestIndex = i;
                     break;
+                }
+            }
+        }
+        if (nearestIndex == -1)
+        {
+            if (on)
+            {
+                if ([node.name isEqualToString:@"coinbutton"])
+                {
+                }
+                else if ([node.name isEqualToString:@"startbutton"])
+                {
+                }
+                else if ([node.name isEqualToString:@"sortbutton"])
+                {
+                    NSLog(@"sort");
+                    sortMethod = (sortMethod == 0 ? 1 : 0);
+                    [self initAndSortDriverArray];
+                    [self updateGameList];
                 }
             }
         }
@@ -790,14 +863,34 @@ int touchInputX;
     {
         return NO;
     }
-    char c = gameDriverList[selected_game].gameDriver->description[0];
+    char c = 0;
+    if (sortMethod == 0)
+    {
+        c = gameDriverList[selected_game].gameDriver->description[0];
+    }
+    else
+    {
+        c = gameDriverList[selected_game].gameDriver->manufacturer[0];
+    }
     for (int i = selected_game; i < gameDriverCount; i++)
     {
-        if (gameDriverList[i].gameDriver->description[0] != c)
+        if (sortMethod == 0)
         {
-            //NSLog(@"jumping from %c to %c", c, gameDriverList[i].gameDriver->description[0]);
-            selected_game = i;
-            return YES;
+            if (gameDriverList[i].gameDriver->description[0] != c)
+            {
+                //NSLog(@"jumping from %c to %c", c, gameDriverList[i].gameDriver->description[0]);
+                selected_game = i;
+                return YES;
+            }
+        }
+        else
+        {
+            if (gameDriverList[i].gameDriver->manufacturer[0] != c)
+            {
+                //NSLog(@"jumping from %c to %c", c, gameDriverList[i].gameDriver->description[0]);
+                selected_game = i;
+                return YES;
+            }
         }
     }
     selected_game = gameDriverCount - 1;
@@ -810,14 +903,34 @@ int touchInputX;
     {
         return NO;
     }
-    char c = gameDriverList[selected_game].gameDriver->description[0];
+    char c = 0;
+    if (sortMethod == 0)
+    {
+        c = gameDriverList[selected_game].gameDriver->description[0];
+    }
+    else
+    {
+        c = gameDriverList[selected_game].gameDriver->manufacturer[0];
+    }
     for (int i = selected_game; i >= 0; i--)
     {
-        if (gameDriverList[i].gameDriver->description[0] != c)
+        if (sortMethod == 0)
         {
-            //NSLog(@"jumping from %c to %c", c, gameDriverList[i].gameDriver->description[0]);
-            selected_game = i;
-            return YES;
+            if (gameDriverList[i].gameDriver->description[0] != c)
+            {
+                //NSLog(@"jumping from %c to %c", c, gameDriverList[i].gameDriver->description[0]);
+                selected_game = i;
+                return YES;
+            }
+        }
+        else
+        {
+            if (gameDriverList[i].gameDriver->manufacturer[0] != c)
+            {
+                //NSLog(@"jumping from %c to %c", c, gameDriverList[i].gameDriver->description[0]);
+                selected_game = i;
+                return YES;
+            }
         }
     }
     selected_game = 0;

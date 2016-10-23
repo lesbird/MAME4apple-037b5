@@ -390,11 +390,6 @@ void update_key_array()
             NSLog(@"Exit Game touched");
             key[KEY_ESC] = 1;
         }
-        //else if (keycode == KEY_LCONTROL || keycode == KEY_ENTER)
-        //{
-        //    //touchTapCount = 0;
-        //    //return 1;
-        //}
     }
 }
 
