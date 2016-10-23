@@ -60,6 +60,10 @@ SKShapeNode *startButtonSprite;
 SKShapeNode *exitButtonSprite;
 SKShapeNode *sortButtonSprite;
 
+BOOL coinButtonPressed;
+BOOL startButtonPressed;
+BOOL exitButtonPressed;
+
 typedef struct GameDriverList
 {
     struct GameDriver *gameDriver;
@@ -719,9 +723,11 @@ CGPoint CGPointClamp(CGPoint p, float range)
             {
                 if ([node.name isEqualToString:@"coinbutton"])
                 {
+                    coinButtonPressed = TRUE;
                 }
                 else if ([node.name isEqualToString:@"startbutton"])
                 {
+                    startButtonPressed = TRUE;
                 }
                 else if ([node.name isEqualToString:@"sortbutton"])
                 {
@@ -730,6 +736,16 @@ CGPoint CGPointClamp(CGPoint p, float range)
                     [self initAndSortDriverArray];
                     [self updateGameList];
                 }
+                else if ([node.name isEqualToString:@"exitbutton"])
+                {
+                    exitButtonPressed = TRUE;
+                }
+            }
+            else
+            {
+                coinButtonPressed = FALSE;
+                startButtonPressed = FALSE;
+                exitButtonPressed = FALSE;
             }
         }
         if (nearestIndex >= 0)

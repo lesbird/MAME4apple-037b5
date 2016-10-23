@@ -171,18 +171,13 @@ static struct KeyboardInfo keylist[] =
     { 0, 0, 0 }	/* end of table */
 };
 
-CGRect topLeftRect;
-CGRect topRightRect;
-CGRect botLeftRect;
-CGRect botRightRect;
 extern CGSize viewSize;
+extern BOOL coinButtonPressed;
+extern BOOL startButtonPressed;
+extern BOOL exitButtonPressed;
 
 void apple_init_input()
 {
-    topLeftRect = CGRectMake(0, 0, 64, 64);
-    topRightRect = CGRectMake(viewSize.width - 64, 0, 64, 64);
-    botLeftRect = CGRectMake(0, viewSize.height - 64, 64, 64);
-    botRightRect = CGRectMake(viewSize.width - 64, 0, 64, 64);
 }
 
 const struct KeyboardInfo *osd_get_key_list(void)
@@ -374,20 +369,16 @@ void update_key_array()
     }
     if (touchTapCount > 0)
     {
-        CGPoint convertPoint = CGPointMake(startTouchPos.x + (viewSize.width / 2), viewSize.height - (startTouchPos.y + (viewSize.height / 2)));
-        if (CGRectContainsPoint(topLeftRect, convertPoint))
+        if (coinButtonPressed)
         {
-            NSLog(@"Add Coin touched");
             key[KEY_5] = 1;
         }
-        else if (CGRectContainsPoint(topRightRect, convertPoint))
+        if (startButtonPressed)
         {
-            NSLog(@"Start Game touched");
             key[KEY_1] = 1;
         }
-        else if (CGRectContainsPoint(botLeftRect, convertPoint))
+        if (exitButtonPressed)
         {
-            NSLog(@"Exit Game touched");
             key[KEY_ESC] = 1;
         }
     }
