@@ -396,8 +396,6 @@ static const char *get_string (char *section, char *option, char *shortcut, char
 
 void get_rom_sample_path (int argc, char **argv, int game_index, char *override_default_rompath)
 {
-    //int i;
-    
     alternate_name = 0;
     mame_argc = argc;
     mame_argv = argv;
@@ -407,7 +405,6 @@ void get_rom_sample_path (int argc, char **argv, int game_index, char *override_
     if (rompath == NULL || rompath[0] == 0)
     {
 #ifndef MESS
-        //rompath    = get_string ("directory", "rompath",    NULL, ".;ROMS");
         NSString *path;
         NSArray *paths = NSSearchPathForDirectoriesInDomains(NSDocumentDirectory, NSUserDomainMask, YES);
         path = [[paths objectAtIndex:0] stringByAppendingPathComponent:@"roms"];
@@ -418,7 +415,6 @@ void get_rom_sample_path (int argc, char **argv, int game_index, char *override_
     }
     
 #ifndef MESS
-    //samplepath = get_string ("directory", "samplepath", NULL, ".;SAMPLES");
     {
         NSString *path;
         NSArray *paths = NSSearchPathForDirectoriesInDomains(NSDocumentDirectory, NSUserDomainMask, YES);
@@ -429,18 +425,7 @@ void get_rom_sample_path (int argc, char **argv, int game_index, char *override_
     softwarepath= get_string ("directory", "softwarepath", NULL, ".;SOFTWARE");
 #endif
     
-    /* handle '-romdir' hack. We should get rid of this BW */
     alternate_name = 0;
-    /*
-    for (i = 1; i < argc; i++)
-    {
-        if (stricmp (argv[i], "-romdir") == 0)
-        {
-            i++;
-            if (i < argc) alternate_name = argv[i];
-        }
-    }
-    */
     /* decompose paths into components (handled by fileio.c) */
     decompose_rom_sample_path (rompath, samplepath);
 }
@@ -822,16 +807,36 @@ void get_rom_sample_path (int argc, char **argv, int game_index, char *override_
     rompath = override_default_rompath;
     if (rompath == NULL || rompath[0] == 0)
     {
+        BOOL bIsDir;
         NSString *path;
-        NSArray *paths = NSSearchPathForDirectoriesInDomains(NSDocumentDirectory, NSUserDomainMask, YES);
-        path = [[paths objectAtIndex:0] stringByAppendingPathComponent:@"roms"];
-        rompath = [path UTF8String];
+        path = [[NSBundle mainBundle] bundlePath];
+        NSString *searchPath = [path stringByAppendingPathComponent:@"roms.bundle/roms"];
+        if (![[NSFileManager defaultManager] fileExistsAtPath:searchPath isDirectory:&bIsDir])
+        {
+            NSArray *paths = NSSearchPathForDirectoriesInDomains(NSDocumentDirectory, NSUserDomainMask, YES);
+            path = [[paths objectAtIndex:0] stringByAppendingPathComponent:@"roms"];
+            rompath = [path UTF8String];
+        }
+        else
+        {
+            // load from roms.bundle if on AppleTV
+            NSString *s = [path stringByAppendingPathComponent:@"roms.bundle/samples"];
+            samplepath = [s UTF8String];
+            
+            NSString *a = [path stringByAppendingPathComponent:@"roms.bundle/artwork"];
+            artworkdir = [a UTF8String];
+
+            rompath = [searchPath UTF8String];
+        }
     }
 
-    NSString *path;
-    NSArray *paths = NSSearchPathForDirectoriesInDomains(NSDocumentDirectory, NSUserDomainMask, YES);
-    path = [[paths objectAtIndex:0] stringByAppendingPathComponent:@"samples"];
-    samplepath = [path UTF8String];
+    if (samplepath == NULL)
+    {
+        NSString *path;
+        NSArray *paths = NSSearchPathForDirectoriesInDomains(NSDocumentDirectory, NSUserDomainMask, YES);
+        path = [[paths objectAtIndex:0] stringByAppendingPathComponent:@"samples"];
+        samplepath = [path UTF8String];
+    }
     
     decompose_rom_sample_path (rompath, samplepath);
 }
@@ -892,19 +897,6 @@ void parse_cmdline (int argc, char **argv, int game_index, char *override_defaul
     //soundcard = get_int("config", "soundcard",  NULL, -1);
     options.use_emulated_ym3812 = !get_bool("config", "ym3812opl", NULL, 0);
     options.samplerate = get_int("config", "samplerate", "sr", 22050);
-
-    /*
-    artworkdir = get_string("directory", "artwork", NULL, "artwork");
-    {
-        NSString *path;
-        NSArray *paths = NSSearchPathForDirectoriesInDomains(NSDocumentDirectory, NSUserDomainMask, YES);
-        path = [[paths objectAtIndex:0] stringByAppendingPathComponent:[NSString stringWithUTF8String:artworkdir]];
-        const char *ptr = [path UTF8String];
-        unsigned long len = strlen(ptr);
-        artworkdir = (char *)malloc(len);
-        strcpy((char *)artworkdir, ptr);
-    }
-     */
 
     artworkdir = get_iOS_directory("artwork"); //pre-existing
     
