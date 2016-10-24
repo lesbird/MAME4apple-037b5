@@ -199,7 +199,7 @@ void update_key_array()
         {
             if (controller.gamepad != nil)
             {
-                if (controller.gamepad.buttonY.pressed)
+                if (controller.gamepad.buttonY.pressed) // p1 button 3
                 {
                     if (controller.gamepad.rightShoulder.pressed)
                     {
@@ -207,7 +207,7 @@ void update_key_array()
                     }
                     else
                     {
-                        key[KEY_LSHIFT] = 1;
+                        key[KEY_SPACE] = 1;
                     }
                 }
                 if (controller.gamepad.leftShoulder.pressed)
@@ -238,31 +238,31 @@ void update_key_array()
                     key[KEY_LEFT] = 1;
                     key[KEY_S] = 1;
                 }
-                if (controller.gamepad.buttonA.pressed)
+                if (controller.gamepad.buttonA.pressed) // p1 button 1
                 {
                     key[KEY_LCONTROL] = 1;
                     key[KEY_ENTER] = 1;
                 }
-                if (controller.gamepad.buttonB.pressed)
+                if (controller.gamepad.buttonX.pressed) // p1 button 2
                 {
                     key[KEY_ALT] = 1;
                 }
-                if (controller.gamepad.buttonX.pressed)
+                if (controller.gamepad.buttonB.pressed) // p1 button 4 (also back button on Apple TV)
                 {
-                    key[KEY_SPACE] = 1;
+                    key[KEY_LSHIFT] = 1;
                 }
             }
             if (controller.extendedGamepad != nil)
             {
                 if (controller.extendedGamepad.leftTrigger.pressed)
                 {
-                    key[KEY_LSHIFT] = 1;
+                    //key[KEY_LSHIFT] = 1;
                 }
                 if (controller.extendedGamepad.leftTrigger.pressed)
                 {
                     if (controller.extendedGamepad.rightTrigger.pressed)
                     {
-                        key[KEY_TAB] = 0;
+                        //key[KEY_TAB] = 0;
                     }
                     else
                     {
