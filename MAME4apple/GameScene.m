@@ -1015,55 +1015,60 @@ int touchInputX;
 {
 #if USE_TABLEVIEW
 #else
+    int pressCount = 0;
     BOOL update_list = NO;
     NSArray *controllerList = [GCController controllers];
     if (controllerList.count > 0)
     {
-        GCController *controller = (GCController *)[controllerList objectAtIndex:0];
-        if (controller != nil)
+        [self handleOnscreenButtonsEnable:NO];
+        for (int i = 0; i < controllerList.count; i++)
         {
-            [self handleOnscreenButtonsEnable:NO];
-            if (controller.gamepad.dpad.down.pressed)
+            GCController *controller = (GCController *)[controllerList objectAtIndex:i];
+            if (controller != nil)
             {
-                if (controller.gamepad.rightShoulder.pressed)
+                if (controller.gamepad.dpad.down.pressed)
                 {
-                    update_list = [self next_game:9];
+                    if (controller.gamepad.rightShoulder.pressed)
+                    {
+                        update_list = [self next_game:9];
+                    }
+                    else
+                    {
+                        update_list = [self next_game:1];
+                    }
+                    pressCount++;
                 }
-                else
+                else if (controller.gamepad.dpad.up.pressed)
                 {
-                    update_list = [self next_game:1];
+                    if (controller.gamepad.rightShoulder.pressed)
+                    {
+                        update_list = [self prev_game:9];
+                    }
+                    else
+                    {
+                        update_list = [self prev_game:1];
+                    }
+                    pressCount++;
                 }
-            }
-            else if (controller.gamepad.dpad.up.pressed)
-            {
-                if (controller.gamepad.rightShoulder.pressed)
+                else if (controller.gamepad.dpad.right.pressed)
                 {
-                    update_list = [self prev_game:9];
+                    update_list = [self next_section];
+                    pressCount++;
                 }
-                else
+                else if (controller.gamepad.dpad.left.pressed)
                 {
-                    update_list = [self prev_game:1];
+                    update_list = [self prev_section];
+                    pressCount++;
                 }
-            }
-            else if (controller.gamepad.dpad.right.pressed)
-            {
-                update_list = [self next_section];
-            }
-            else if (controller.gamepad.dpad.left.pressed)
-            {
-                update_list = [self prev_section];
-            }
-            else if (controller.gamepad.buttonA.pressed)
-            {
-                if (!buttonPress)
+                else if (controller.gamepad.buttonA.pressed)
                 {
-                    buttonPress = YES;
-                    runState = 1;
+                    if (!buttonPress)
+                    {
+                        buttonPress = YES;
+                        runState = 1;
+                    }
+                    pressCount++;
                 }
-            }
-            else
-            {
-                buttonPress = NO;
             }
         }
     }
@@ -1079,6 +1084,7 @@ int touchInputX;
         {
             update_list = [self next_game:1];
         }
+        pressCount++;
     }
     else if (iCadeStickCenter.y < 0)
     {
@@ -1090,14 +1096,17 @@ int touchInputX;
         {
             update_list = [self prev_game:1];
         }
+        pressCount++;
     }
     else if (iCadeStickCenter.x > 0)
     {
         update_list = [self next_section];
+        pressCount++;
     }
     else if (iCadeStickCenter.x < 0)
     {
         update_list = [self prev_section];
+        pressCount++;
     }
     else if (iCadeButtonState[ICADEBUTTON_A])
     {
@@ -1106,8 +1115,10 @@ int touchInputX;
             buttonPress = YES;
             runState = 1;
         }
+        pressCount++;
     }
-    else
+
+    if (pressCount == 0)
     {
         buttonPress = NO;
     }

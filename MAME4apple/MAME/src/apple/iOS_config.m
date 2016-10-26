@@ -821,12 +821,15 @@ void get_rom_sample_path (int argc, char **argv, int game_index, char *override_
         {
             // load from roms.bundle if on AppleTV
             NSString *s = [path stringByAppendingPathComponent:@"roms.bundle/samples"];
-            samplepath = [s UTF8String];
+            const char *str = [s UTF8String];
+            samplepath = strdup(str);
             
             NSString *a = [path stringByAppendingPathComponent:@"roms.bundle/artwork"];
-            artworkdir = [a UTF8String];
+            const char *astr = [a UTF8String];
+            artworkdir = strdup(astr);
 
-            rompath = [searchPath UTF8String];
+            const char *rstr = [searchPath UTF8String];
+            rompath = strdup(rstr);
         }
     }
 

@@ -194,84 +194,87 @@ void update_key_array()
     NSArray *controllerList = [GCController controllers];
     if (controllerList.count > 0)
     {
-        GCController *controller = (GCController *)[controllerList objectAtIndex:0];
-        if (controller != nil)
+        for (int i = 0; i < controllerList.count; i++)
         {
-            if (controller.gamepad != nil)
+            GCController *controller = (GCController *)[controllerList objectAtIndex:i];
+            if (controller != nil)
             {
-                if (controller.gamepad.buttonY.pressed) // p1 button 3
+                if (controller.gamepad != nil)
                 {
+                    if (controller.gamepad.buttonY.pressed) // p1 button 3
+                    {
+                        if (controller.gamepad.rightShoulder.pressed)
+                        {
+                            key[KEY_ESC] = 1;
+                        }
+                        else
+                        {
+                            key[KEY_SPACE] = 1;
+                        }
+                    }
+                    if (controller.gamepad.leftShoulder.pressed)
+                    {
+                        key[KEY_5] = 1;
+                    }
                     if (controller.gamepad.rightShoulder.pressed)
                     {
-                        key[KEY_ESC] = 1;
+                        key[KEY_1] = 1;
                     }
-                    else
+                    if (controller.gamepad.dpad.up.pressed)
                     {
-                        key[KEY_SPACE] = 1;
+                        key[KEY_UP] = 1;
+                        key[KEY_E] = 1;
+                    }
+                    if (controller.gamepad.dpad.right.pressed)
+                    {
+                        key[KEY_RIGHT] = 1;
+                        key[KEY_F] = 1;
+                    }
+                    if (controller.gamepad.dpad.down.pressed)
+                    {
+                        key[KEY_DOWN] = 1;
+                        key[KEY_D] = 1;
+                    }
+                    if (controller.gamepad.dpad.left.pressed)
+                    {
+                        key[KEY_LEFT] = 1;
+                        key[KEY_S] = 1;
+                    }
+                    if (controller.gamepad.buttonA.pressed) // p1 button 1
+                    {
+                        key[KEY_LCONTROL] = 1;
+                        key[KEY_ENTER] = 1;
+                    }
+                    if (controller.gamepad.buttonX.pressed) // p1 button 2
+                    {
+                        key[KEY_ALT] = 1;
+                    }
+                    if (controller.gamepad.buttonB.pressed) // p1 button 4 (also back button on Apple TV)
+                    {
+                        key[KEY_LSHIFT] = 1;
                     }
                 }
-                if (controller.gamepad.leftShoulder.pressed)
+                if (controller.extendedGamepad != nil)
                 {
-                    key[KEY_5] = 1;
-                }
-                if (controller.gamepad.rightShoulder.pressed)
-                {
-                    key[KEY_1] = 1;
-                }
-                if (controller.gamepad.dpad.up.pressed)
-                {
-                    key[KEY_UP] = 1;
-                    key[KEY_E] = 1;
-                }
-                if (controller.gamepad.dpad.right.pressed)
-                {
-                    key[KEY_RIGHT] = 1;
-                    key[KEY_F] = 1;
-                }
-                if (controller.gamepad.dpad.down.pressed)
-                {
-                    key[KEY_DOWN] = 1;
-                    key[KEY_D] = 1;
-                }
-                if (controller.gamepad.dpad.left.pressed)
-                {
-                    key[KEY_LEFT] = 1;
-                    key[KEY_S] = 1;
-                }
-                if (controller.gamepad.buttonA.pressed) // p1 button 1
-                {
-                    key[KEY_LCONTROL] = 1;
-                    key[KEY_ENTER] = 1;
-                }
-                if (controller.gamepad.buttonX.pressed) // p1 button 2
-                {
-                    key[KEY_ALT] = 1;
-                }
-                if (controller.gamepad.buttonB.pressed) // p1 button 4 (also back button on Apple TV)
-                {
-                    key[KEY_LSHIFT] = 1;
-                }
-            }
-            if (controller.extendedGamepad != nil)
-            {
-                if (controller.extendedGamepad.leftTrigger.pressed)
-                {
-                    //key[KEY_LSHIFT] = 1;
-                }
-                if (controller.extendedGamepad.leftTrigger.pressed)
-                {
+                    if (controller.extendedGamepad.leftTrigger.pressed)
+                    {
+                        //key[KEY_LSHIFT] = 1;
+                    }
+                    if (controller.extendedGamepad.leftTrigger.pressed)
+                    {
+                        if (controller.extendedGamepad.rightTrigger.pressed)
+                        {
+                            //key[KEY_TAB] = 0;
+                        }
+                        else
+                        {
+                            key[KEY_TAB] = 1;
+                        }
+                    }
                     if (controller.extendedGamepad.rightTrigger.pressed)
                     {
-                        //key[KEY_TAB] = 0;
+                        key[KEY_F11] = 1;
                     }
-                    else
-                    {
-                        key[KEY_TAB] = 1;
-                    }
-                }
-                if (controller.extendedGamepad.rightTrigger.pressed)
-                {
-                    key[KEY_F11] = 1;
                 }
             }
         }
@@ -523,34 +526,37 @@ void osd_trak_read(int player,int *deltax,int *deltay)
 /* return values in the range -128 .. 128 (yes, 128, not 127) */
 void osd_analogjoy_read(int player,int *analog_x, int *analog_y)
 {
-    if (player == 0)
+    if (player == 0 || player == 1)
     {
         NSArray *controllerList = [GCController controllers];
         if (controllerList.count > 0)
         {
-            GCController *controller = (GCController *)[controllerList objectAtIndex:0];
-            if (controller != nil)
+            for (int i = 0; i < controllerList.count; i++)
             {
-                int playerId = 0;
-                joyAnalogLeftX[playerId] = (int)(controller.extendedGamepad.leftThumbstick.xAxis.value * 128);
-                joyAnalogLeftY[playerId] = (int)(controller.extendedGamepad.leftThumbstick.yAxis.value * 128);
-                joyAnalogRightX[playerId] = (int)(controller.extendedGamepad.rightThumbstick.xAxis.value * 128);
-                joyAnalogRightY[playerId] = (int)(controller.extendedGamepad.rightThumbstick.yAxis.value * 128);
-                //NSLog(@"joyAnalog left=%d,%d right=%d,%d", joyAnalogLeftX[0], joyAnalogLeftY[0], joyAnalogRightX[0], joyAnalogRightY[0]);
+                GCController *controller = (GCController *)[controllerList objectAtIndex:i];
+                if (controller != nil)
+                {
+                    int playerId = i;
+                    joyAnalogLeftX[playerId] = (int)(controller.extendedGamepad.leftThumbstick.xAxis.value * 128);
+                    joyAnalogLeftY[playerId] = (int)(controller.extendedGamepad.leftThumbstick.yAxis.value * 128);
+                    joyAnalogRightX[playerId] = (int)(controller.extendedGamepad.rightThumbstick.xAxis.value * 128);
+                    joyAnalogRightY[playerId] = (int)(controller.extendedGamepad.rightThumbstick.yAxis.value * 128);
+                    //NSLog(@"joyAnalog left=%d,%d right=%d,%d", joyAnalogLeftX[0], joyAnalogLeftY[0], joyAnalogRightX[0], joyAnalogRightY[0]);
+                }
             }
         }
     }
     if (player == 0)
     {
         //NSLog(@"joyAnalogLeft=%d,%d", joyAnalogLeftX[0], joyAnalogLeftY[0]);
-        *analog_x = joyAnalogLeftX[0];
-        *analog_y = joyAnalogLeftY[0];
+        *analog_x = joyAnalogLeftX[0] != 0 ? joyAnalogLeftX[0] : joyAnalogLeftX[1];
+        *analog_y = joyAnalogLeftY[0] != 0 ? joyAnalogLeftY[0] : joyAnalogLeftY[1];
     }
     else if (player == 1)
     {
         //NSLog(@"joyAnalogRight=%d,%d", joyAnalogRightX[0], joyAnalogRightY[0]);
-        *analog_x = joyAnalogRightX[0];
-        *analog_y = joyAnalogRightY[0];
+        *analog_x = joyAnalogRightX[0] != 0 ? joyAnalogRightX[0] : joyAnalogRightX[1];
+        *analog_y = joyAnalogRightY[0] != 0 ? joyAnalogRightY[0] : joyAnalogRightY[1];
     }
 }
 
