@@ -11,8 +11,13 @@
 #import <CloudKit/CloudKit.h>
 #include "driver.h"
 
+#if TARGET_OS_TV
 #define USE_TABLEVIEW 0
+#else
+#define USE_TABLEVIEW 1
+#endif
 #define USE_RENDERTHREAD 0
+#define USE_TOUCH_CONTROLS 0
 
 #define VERSION_STRING "V1.0"
 
@@ -40,6 +45,7 @@ SKNode *buttonLayerNode;
 
 SKShapeNode *debugTouchSprite;
 
+#if USE_TOUCH_CONTROLS
 SKShapeNode *onscreenJoystickLeft;
 SKShapeNode *onscreenNubLeft;
 CGPoint onscreenJoystickLeftAnchor;
@@ -48,7 +54,6 @@ SKShapeNode *onscreenJoystickRight;
 SKShapeNode *onscreenNubRight;
 CGPoint onscreenJoystickRightAnchor;
 
-UINT32 onscreenButton[ONSCREEN_BUTTON_MAX];
 SKShapeNode *onscreenButtonSprite[ONSCREEN_BUTTON_MAX];
 // button positions - percentage of screen width/height
 float onscreenButtonX[ONSCREEN_BUTTON_MAX] = { 0.8f, 0.9f, 0.7f, 0.8f, 0.2f, 0.4f, 0.6f, 0.8f};
@@ -59,6 +64,8 @@ SKShapeNode *coinButtonSprite;
 SKShapeNode *startButtonSprite;
 SKShapeNode *exitButtonSprite;
 SKShapeNode *sortButtonSprite;
+#endif
+UINT32 onscreenButton[ONSCREEN_BUTTON_MAX];
 
 BOOL coinButtonPressed;
 BOOL startButtonPressed;
@@ -83,9 +90,11 @@ CGSize viewSize;
 double deltaTime;
 double prevTime;
 
+#if USE_TOUCH_CONTROLS
 // touch vars
 float touchAdvTimer;
 float touchAdvDelay = 0.1f;
+#endif
 NSUInteger touchTapCount;
 
 // front end vars
@@ -101,7 +110,6 @@ GameScene *myObjectSelf;
 {
 }
 
-// table views don't allow game controller control
 -(NSInteger)tableView:(UITableView *)tableView numberOfRowsInSection:(NSInteger)section
 {
     return gameDriverCount;
@@ -111,10 +119,20 @@ GameScene *myObjectSelf;
 {
     static NSString *MyIdentifier = @"CellIdentifier";
     UITableViewCell *cell = [tableView dequeueReusableCellWithIdentifier:MyIdentifier];
-    if (cell == nil) {
-        cell = [[UITableViewCell alloc] initWithStyle:UITableViewCellStyleDefault  reuseIdentifier:MyIdentifier];
+    if (cell == nil)
+    {
+        cell = [[UITableViewCell alloc] initWithStyle:UITableViewCellStyleSubtitle  reuseIdentifier:MyIdentifier];
+    }
+    if ((gameDriverList[indexPath.row].gameDriver->flags & (GAME_NOT_WORKING | NOT_A_DRIVER)) != 0)
+    {
+        cell.textLabel.textColor = [UIColor redColor];
+    }
+    else
+    {
+        cell.textLabel.textColor = [UIColor blackColor];
     }
     cell.textLabel.text = [NSString stringWithUTF8String:gameDriverList[indexPath.row].gameDriver->description];
+    cell.detailTextLabel.text = [NSString stringWithFormat:@"%s %s", gameDriverList[indexPath.row].gameDriver->year, gameDriverList[indexPath.row].gameDriver->manufacturer];
     return cell;
 }
 
@@ -124,16 +142,38 @@ GameScene *myObjectSelf;
     runState = 1;
 }
 
+-(NSString *)tableView:(UITableView *)tableView titleForHeaderInSection:(NSInteger)section
+{
+    static NSString *string = nil;
+    if (string == nil)
+    {
+        string = [NSString stringWithFormat:@"MAME4apple %s 2016 by Les Bird (www.lesbird.com)", VERSION_STRING];
+    }
+    return string;
+}
+
+-(NSString *)tableView:(UITableView *)tableView titleForFooterInSection:(NSInteger)section
+{
+    static NSString *string = nil;
+    if (string == nil)
+    {
+        string = [NSString stringWithFormat:@"%d games", gameDriverCount];
+    }
+    return string;
+}
+
 int list_step = 40; // gap between lines in game list
 
 - (void)didMoveToView:(SKView *)view
 {
     [self initAndSortDriverArray];
     
+#if !USE_TABLEVIEW
     gameListNode = [SKNode node];
     gameListNode.name = @"gamelistnode";
     [self addChild:gameListNode];
-
+#endif
+    
     viewSize = view.bounds.size;
     
     NSLog(@"view bounds=%f,%f", viewSize.width, viewSize.height);
@@ -141,6 +181,8 @@ int list_step = 40; // gap between lines in game list
 #if USE_TABLEVIEW
     gameDriverTableView = [[UITableView alloc] initWithFrame:view.bounds];
     gameDriverTableView.autoresizingMask = UIViewAutoresizingFlexibleHeight|UIViewAutoresizingFlexibleWidth;
+    gameDriverTableView.sectionHeaderHeight = 64;
+    gameDriverTableView.sectionFooterHeight = 64;
     gameDriverTableView.delegate = self;
     gameDriverTableView.dataSource = self;
     [gameDriverTableView reloadData];
@@ -180,6 +222,9 @@ int list_step = 40; // gap between lines in game list
     
     [self initFrameBuffer];
     
+#if USE_TABLEVIEW
+    frameBufferNode.hidden = YES;
+#else
     gameCountLabel = [SKLabelNode labelNodeWithText:@""];
     gameCountLabel.name = @"gamecountlabel";
     gameCountLabel.position = CGPointMake(-(width / 2) + 16, -(height / 2) + 0);
@@ -194,15 +239,20 @@ int list_step = 40; // gap between lines in game list
     versionLabel.fontName = @"Courier-Bold";
     versionLabel.fontSize = 20;
     [gameListNode addChild:versionLabel];
-
-    [self initOnscreenControls];
+#endif
     
+#if USE_TOUCH_CONTROLS
+    [self initOnscreenControls];
+#endif
+    
+#if 0
     debugTouchSprite = [SKShapeNode shapeNodeWithCircleOfRadius:32];
     debugTouchSprite.name = @"debugtouchsprite";
     debugTouchSprite.fillColor = [UIColor whiteColor];
     debugTouchSprite.hidden = YES;
     [self addChild:debugTouchSprite];
-
+#endif
+    
     // for iCade support
     iCadeReaderView *control = [[iCadeReaderView alloc] initWithFrame:CGRectZero];
     [self.view addSubview:control];
@@ -248,8 +298,13 @@ int list_step = 40; // gap between lines in game list
             qsort(gameDriverList, gameDriverCount, sizeof(GameDriverList_t), sortByManufacturer);
             break;
     }
+    
+#if USE_TABLEVIEW
+    [gameDriverTableView reloadData];
+#endif
 }
 
+#if USE_TOUCH_CONTROLS
 -(void)initOnscreenControls
 {
     // left side joystick
@@ -354,6 +409,7 @@ int list_step = 40; // gap between lines in game list
     
     [self handleOnscreenButtonsEnable:NO];
 }
+#endif
 
 // iCade support
 CGPoint iCadeStickCenter;
@@ -575,6 +631,7 @@ void fillBufferData(UINT32 *buf, int width, int height)
         frameBufferNode.yScale *= 2;
     }
     
+#if !USE_TABLEVIEW
     float x = viewSize.width / 2;
     float y = viewSize.height / 2;
 
@@ -597,8 +654,9 @@ void fillBufferData(UINT32 *buf, int width, int height)
             gameListDesc[i].hidden = NO;
         }
     }
-    // experimental touch buttons (not working yet)
-    
+#endif
+
+#if USE_TOUCH_CONTROLS
     CGPoint buttonPos;
     buttonPos = CGPointMake(x * onscreenButtonX[ONSCREEN_BUTTON_A], -y * onscreenButtonY[ONSCREEN_BUTTON_A]);
     onscreenButtonSprite[ONSCREEN_BUTTON_A].position = buttonPos;
@@ -628,9 +686,12 @@ void fillBufferData(UINT32 *buf, int width, int height)
     {
         sortButtonSprite.position = CGPointMake(0, y - 16);
     }
+#endif
     
+#if !USE_TABLEVIEW
     gameCountLabel.position = CGPointMake(-x + 16, -y + 16);
     versionLabel.position = CGPointMake(0, -y + 16);
+#endif
 }
 
 CGPoint CGPointClamp(CGPoint p, float range)
@@ -648,6 +709,7 @@ CGPoint CGPointClamp(CGPoint p, float range)
     return CGPointMake(dx, dy);
 }
 
+#if USE_TOUCH_CONTROLS
 -(void)handleOnscreenButtonsEnable:(BOOL)on
 {
     for (int i = 0; i < ONSCREEN_BUTTON_MAX; i++)
@@ -782,14 +844,17 @@ CGPoint CGPointClamp(CGPoint p, float range)
     }
     [self handleOnscreenButtonsEnable:YES];
 }
+#endif
 
 CGPoint startTouchPos;
 -(void)touchDownAtPoint:(CGPoint)pos
 {
     startTouchPos = pos;
 
+#if USE_TOUCH_CONTROLS
     [self handleOnscreenJoystickAnchor:pos];
     [self handleOnscreenButtons:pos on:YES];
+#endif
     
     //debugTouchSprite.hidden = NO;
     //debugTouchSprite.position = startTouchPos;
@@ -800,7 +865,9 @@ int touchInputX;
 
 -(void)touchMovedToPoint:(CGPoint)pos
 {
+#if USE_TOUCH_CONTROLS
     [self handleOnscreenJoystickMove:pos];
+#endif
     
     startTouchPos = pos;
     
@@ -811,9 +878,10 @@ int touchInputX;
 {
     touchInputX = 0;
     touchInputY = 0;
-    
+#if USE_TOUCH_CONTROLS
     [self handleOnscreenJoystickOff:pos];
     [self handleOnscreenButtons:pos on:NO];
+#endif
     
     //debugTouchSprite.hidden = YES;
 }
@@ -1013,14 +1081,14 @@ int touchInputX;
 
 -(void)handleFrontEnd
 {
-#if USE_TABLEVIEW
-#else
     int pressCount = 0;
     BOOL update_list = NO;
     NSArray *controllerList = [GCController controllers];
     if (controllerList.count > 0)
     {
+#if USE_TOUCH_CONTROLS
         [self handleOnscreenButtonsEnable:NO];
+#endif
         for (int i = 0; i < controllerList.count; i++)
         {
             GCController *controller = (GCController *)[controllerList objectAtIndex:i];
@@ -1058,6 +1126,16 @@ int touchInputX;
                 else if (controller.gamepad.dpad.left.pressed)
                 {
                     update_list = [self prev_section];
+                    pressCount++;
+                }
+                else if (controller.gamepad.buttonY.pressed)
+                {
+                    if (!buttonPress)
+                    {
+                        sortMethod = (sortMethod == 0 ? 1 : 0);
+                        [self initAndSortDriverArray];
+                        buttonPress = YES;
+                    }
                     pressCount++;
                 }
                 else if (controller.gamepad.buttonA.pressed)
@@ -1123,6 +1201,8 @@ int touchInputX;
         buttonPress = NO;
     }
     
+    // disabling touch controls until a better solution comes along - touch controls are really a bad way to play arcade games anyways
+#if USE_TOUCH_CONTROLS
     // handle touch controls
     touchAdvTimer += deltaTime;
     {
@@ -1165,12 +1245,18 @@ int touchInputX;
             runState = 1;
         }
     }
+#endif
+    
     if (update_list)
     {
+#if USE_TABLEVIEW
+        NSIndexPath *indexPath = [NSIndexPath indexPathForRow:selected_game inSection:0];
+        [gameDriverTableView selectRowAtIndexPath:indexPath animated:YES scrollPosition:UITableViewScrollPositionMiddle];
+#else
         [self updateGameList];
+#endif
         buttonPress = YES;
     }
-#endif
 }
 
 -(void)screenWasRotated
