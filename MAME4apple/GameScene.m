@@ -13,13 +13,14 @@
 
 #if TARGET_OS_TV
 #define USE_TABLEVIEW 0
+#define USE_TOUCH_CONTROLS 0
 #else
 #define USE_TABLEVIEW 1
+#define USE_TOUCH_CONTROLS 1
 #endif
 #define USE_RENDERTHREAD 0
-#define USE_TOUCH_CONTROLS 0
 
-#define VERSION_STRING "V1.0"
+#define VERSION_STRING "V1.1"
 
 extern void parse_cmdline(int argc, char **argv, int game_index, char *override_default_rompath);
 
@@ -46,25 +47,20 @@ SKNode *buttonLayerNode;
 SKShapeNode *debugTouchSprite;
 
 #if USE_TOUCH_CONTROLS
+UIButton *buttonCoin;
+UIButton *buttonStart;
+UIButton *buttonExit;
+UIButton *buttonAction1;
+UIButton *buttonAction2;
+UIButton *buttonAction3;
+UIButton *buttonAction4;
+int actionButtonY[4] = {300, 400, 500, 600};
+// onscreen joystick
 SKShapeNode *onscreenJoystickLeft;
 SKShapeNode *onscreenNubLeft;
 CGPoint onscreenJoystickLeftAnchor;
-
-SKShapeNode *onscreenJoystickRight;
-SKShapeNode *onscreenNubRight;
-CGPoint onscreenJoystickRightAnchor;
-
-SKShapeNode *onscreenButtonSprite[ONSCREEN_BUTTON_MAX];
-// button positions - percentage of screen width/height
-float onscreenButtonX[ONSCREEN_BUTTON_MAX] = { 0.8f, 0.9f, 0.7f, 0.8f, 0.2f, 0.4f, 0.6f, 0.8f};
-float onscreenButtonY[ONSCREEN_BUTTON_MAX] = { 0.7f, 0.5f, 0.5f, 0.3f, 0.8f, 0.8f, 0.8f, 0.8f};
-float onscreenButtonSize = 40;
-
-SKShapeNode *coinButtonSprite;
-SKShapeNode *startButtonSprite;
-SKShapeNode *exitButtonSprite;
-SKShapeNode *sortButtonSprite;
 #endif
+
 UINT32 onscreenButton[ONSCREEN_BUTTON_MAX];
 
 BOOL coinButtonPressed;
@@ -90,11 +86,6 @@ CGSize viewSize;
 double deltaTime;
 double prevTime;
 
-#if USE_TOUCH_CONTROLS
-// touch vars
-float touchAdvTimer;
-float touchAdvDelay = 0.1f;
-#endif
 NSUInteger touchTapCount;
 
 // front end vars
@@ -162,6 +153,156 @@ GameScene *myObjectSelf;
     return string;
 }
 
+-(NSArray *)sectionIndexTitlesForTableView:(UITableView *)tableView
+{
+    return sectionIndexArray;
+}
+
+-(NSInteger)tableView:(UITableView *)tableView sectionForSectionIndexTitle:(NSString *)title atIndex:(NSInteger)index
+{
+    NSLog(@"section index=%ld %@", (long)index, (NSString *)sectionIndexArray[index]);
+    [self jumpToSection:sectionIndexArray[index]];
+    NSIndexPath *indexPath = [NSIndexPath indexPathForRow:selected_game inSection:0];
+    [gameDriverTableView selectRowAtIndexPath:indexPath animated:YES scrollPosition:UITableViewScrollPositionMiddle];
+    return selected_game;
+}
+
+NSMutableArray *sectionIndexArray;
+
+-(void)setupSectionIndex
+{
+    NSMutableArray *indexArray = [[NSMutableArray alloc] init];
+    [indexArray addObject:@"0"];
+    [indexArray addObject:@"1"];
+    [indexArray addObject:@"2"];
+    [indexArray addObject:@"3"];
+    [indexArray addObject:@"4"];
+    [indexArray addObject:@"5"];
+    [indexArray addObject:@"6"];
+    [indexArray addObject:@"7"];
+    [indexArray addObject:@"8"];
+    [indexArray addObject:@"9"];
+    [indexArray addObject:@"A"];
+    [indexArray addObject:@"B"];
+    [indexArray addObject:@"C"];
+    [indexArray addObject:@"D"];
+    [indexArray addObject:@"E"];
+    [indexArray addObject:@"F"];
+    [indexArray addObject:@"G"];
+    [indexArray addObject:@"H"];
+    [indexArray addObject:@"I"];
+    [indexArray addObject:@"J"];
+    [indexArray addObject:@"K"];
+    [indexArray addObject:@"L"];
+    [indexArray addObject:@"M"];
+    [indexArray addObject:@"N"];
+    [indexArray addObject:@"O"];
+    [indexArray addObject:@"P"];
+    [indexArray addObject:@"Q"];
+    [indexArray addObject:@"R"];
+    [indexArray addObject:@"S"];
+    [indexArray addObject:@"T"];
+    [indexArray addObject:@"U"];
+    [indexArray addObject:@"V"];
+    [indexArray addObject:@"W"];
+    [indexArray addObject:@"X"];
+    [indexArray addObject:@"Y"];
+    [indexArray addObject:@"Z"];
+    
+    sectionIndexArray = indexArray;
+}
+
+#if USE_TOUCH_CONTROLS
+-(void)coinButtonPressed
+{
+    NSLog(@"coinButtonPressed");
+    coinButtonPressed = TRUE;
+}
+
+-(void)coinButtonReleased
+{
+    NSLog(@"coinButtonReleased");
+    coinButtonPressed = FALSE;
+}
+
+-(void)startButtonPressed
+{
+    NSLog(@"startButtonPressed");
+    startButtonPressed = TRUE;
+}
+
+-(void)startButtonReleased
+{
+    NSLog(@"startButtonReleased");
+    startButtonPressed = FALSE;
+}
+
+-(void)exitButtonPressed
+{
+    NSLog(@"exitButtonPressed");
+    exitButtonPressed = TRUE;
+}
+
+-(void)exitButtonReleased
+{
+    NSLog(@"exitButtonReleased");
+    exitButtonPressed = FALSE;
+}
+
+-(void)action1ButtonPressed
+{
+    onscreenButton[0] = 1;
+}
+
+-(void)action1ButtonReleased
+{
+    onscreenButton[0] = 0;
+}
+
+-(void)action2ButtonPressed
+{
+    onscreenButton[1] = 1;
+}
+
+-(void)action2ButtonReleased
+{
+    onscreenButton[1] = 0;
+}
+
+-(void)action3ButtonPressed
+{
+    onscreenButton[2] = 1;
+}
+
+-(void)action3ButtonReleased
+{
+    onscreenButton[2] = 0;
+}
+
+-(void)action4ButtonPressed
+{
+    onscreenButton[3] = 1;
+}
+
+-(void)action4ButtonReleased
+{
+    onscreenButton[3] = 0;
+}
+
+-(UIButton *)createButton:(NSString *)title
+{
+    UIButton *button = [UIButton buttonWithType:UIButtonTypeRoundedRect];
+    [button setTitle:title forState:UIControlStateNormal];
+    [button setTitleColor:[UIColor whiteColor] forState:UIControlStateNormal];
+    [button setTitleColor:[UIColor blackColor] forState:UIControlStateSelected];
+    [button setBackgroundColor:[UIColor darkGrayColor]];
+    [button setAlpha:0.5f];
+    [[button layer] setBorderWidth:2];
+    [[button layer] setBorderColor:[UIColor whiteColor].CGColor];
+    return button;
+}
+#endif
+
 int list_step = 40; // gap between lines in game list
 
 - (void)didMoveToView:(SKView *)view
@@ -179,6 +320,7 @@ int list_step = 40; // gap between lines in game list
     NSLog(@"view bounds=%f,%f", viewSize.width, viewSize.height);
     
 #if USE_TABLEVIEW
+    [self setupSectionIndex];
     gameDriverTableView = [[UITableView alloc] initWithFrame:view.bounds];
     gameDriverTableView.autoresizingMask = UIViewAutoresizingFlexibleHeight|UIViewAutoresizingFlexibleWidth;
     gameDriverTableView.sectionHeaderHeight = 64;
@@ -241,16 +383,15 @@ int list_step = 40; // gap between lines in game list
     [gameListNode addChild:versionLabel];
 #endif
     
-#if USE_TOUCH_CONTROLS
-    [self initOnscreenControls];
-#endif
+    [self initOnScreenJoystick];
     
-#if 0
-    debugTouchSprite = [SKShapeNode shapeNodeWithCircleOfRadius:32];
-    debugTouchSprite.name = @"debugtouchsprite";
-    debugTouchSprite.fillColor = [UIColor whiteColor];
-    debugTouchSprite.hidden = YES;
-    [self addChild:debugTouchSprite];
+#if USE_TOUCH_CONTROLS
+    [self initOnScreenButtons];
+    //debugTouchSprite = [SKShapeNode shapeNodeWithCircleOfRadius:32];
+    //debugTouchSprite.name = @"debugtouchsprite";
+    //debugTouchSprite.fillColor = [UIColor whiteColor];
+    //debugTouchSprite.hidden = YES;
+    //[self addChild:debugTouchSprite];
 #endif
     
     // for iCade support
@@ -304,9 +445,9 @@ int list_step = 40; // gap between lines in game list
 #endif
 }
 
-#if USE_TOUCH_CONTROLS
--(void)initOnscreenControls
+-(void)initOnScreenJoystick
 {
+#if USE_TOUCH_CONTROLS
     // left side joystick
     onscreenJoystickLeftAnchor = CGPointMake(-256, -256);
     onscreenJoystickLeft = [SKShapeNode shapeNodeWithCircleOfRadius:64];
@@ -322,94 +463,72 @@ int list_step = 40; // gap between lines in game list
     [onscreenJoystickLeft addChild:onscreenNubLeft];
     
     onscreenJoystickLeft.hidden = YES;
+#endif
+}
 
-    // right side joystick
-    onscreenJoystickRightAnchor = CGPointMake(-256, -256);
-    onscreenJoystickRight = [SKShapeNode shapeNodeWithCircleOfRadius:64];
-    onscreenJoystickRight.name = @"joystickright";
-    onscreenJoystickRight.position = onscreenJoystickRightAnchor;
-    onscreenJoystickRight.fillColor = [UIColor darkGrayColor];
-    onscreenJoystickRight.alpha = 0.2f;
-    [self addChild:onscreenJoystickRight];
-    
-    onscreenNubRight = [SKShapeNode shapeNodeWithCircleOfRadius:32];
-    onscreenJoystickLeft.name = @"nubright";
-    onscreenNubRight.fillColor = [UIColor greenColor];
-    [onscreenJoystickRight addChild:onscreenNubRight];
-    
-    onscreenJoystickRight.hidden = YES;
+-(void)initOnScreenButtons
+{
+#if USE_TOUCH_CONTROLS
+    int buttonWidth = 100;
+    int buttonHeight = 90;
+    int buttonHeight2 = 50;
 
-    // onscreen buttons
-    CGPoint buttonPos;
-    float w = viewSize.width / 2;
-    float h = viewSize.height / 2;
-    onscreenButtonSprite[ONSCREEN_BUTTON_A] = [SKShapeNode shapeNodeWithCircleOfRadius:onscreenButtonSize];
-    onscreenButtonSprite[ONSCREEN_BUTTON_A].name = @"button_a";
-    buttonPos = CGPointMake(w * onscreenButtonX[ONSCREEN_BUTTON_A], -h * onscreenButtonY[ONSCREEN_BUTTON_A]);
-    onscreenButtonSprite[ONSCREEN_BUTTON_A].position = buttonPos;
-    onscreenButtonSprite[ONSCREEN_BUTTON_A].fillColor = [UIColor greenColor];
-    onscreenButtonSprite[ONSCREEN_BUTTON_A].alpha = 0.2f;
-    [self addChild:onscreenButtonSprite[ONSCREEN_BUTTON_A]];
-
-    onscreenButtonSprite[ONSCREEN_BUTTON_B] = [SKShapeNode shapeNodeWithCircleOfRadius:onscreenButtonSize];
-    onscreenButtonSprite[ONSCREEN_BUTTON_B].name = @"button_b";
-    buttonPos = CGPointMake(w * onscreenButtonX[ONSCREEN_BUTTON_B], -h * onscreenButtonY[ONSCREEN_BUTTON_B]);
-    onscreenButtonSprite[ONSCREEN_BUTTON_B].position = buttonPos;
-    onscreenButtonSprite[ONSCREEN_BUTTON_B].fillColor = [UIColor redColor];
-    onscreenButtonSprite[ONSCREEN_BUTTON_B].alpha = 0.2f;
-    [self addChild:onscreenButtonSprite[ONSCREEN_BUTTON_B]];
+    if ([UIDevice currentDevice].userInterfaceIdiom == UIUserInterfaceIdiomPhone)
+    {
+        buttonWidth = 50;
+        buttonHeight = 50;
+        buttonHeight2 = 50;
+        actionButtonY[0] = 50;
+        actionButtonY[1] = 110;
+        actionButtonY[2] = 170;
+        actionButtonY[3] = 230;
+    }
     
-    onscreenButtonSprite[ONSCREEN_BUTTON_C] = [SKShapeNode shapeNodeWithCircleOfRadius:onscreenButtonSize];
-    onscreenButtonSprite[ONSCREEN_BUTTON_C].name = @"button_c";
-    buttonPos = CGPointMake(w * onscreenButtonX[ONSCREEN_BUTTON_C], -h * onscreenButtonY[ONSCREEN_BUTTON_C]);
-    onscreenButtonSprite[ONSCREEN_BUTTON_C].position = buttonPos;
-    onscreenButtonSprite[ONSCREEN_BUTTON_C].fillColor = [UIColor blueColor];
-    onscreenButtonSprite[ONSCREEN_BUTTON_C].alpha = 0.2f;
-    [self addChild:onscreenButtonSprite[ONSCREEN_BUTTON_C]];
+    buttonCoin = [self createButton:@"COIN"];
+    [buttonCoin addTarget:self action:@selector(coinButtonPressed) forControlEvents:UIControlEventTouchDown];
+    [buttonCoin addTarget:self action:@selector(coinButtonReleased) forControlEvents:UIControlEventTouchUpInside];
+    buttonCoin.frame = CGRectMake(0, 10, buttonWidth, buttonHeight2);
+    [self.view addSubview:buttonCoin];
     
-    onscreenButtonSprite[ONSCREEN_BUTTON_D] = [SKShapeNode shapeNodeWithCircleOfRadius:onscreenButtonSize];
-    onscreenButtonSprite[ONSCREEN_BUTTON_D].name = @"button_d";
-    buttonPos = CGPointMake(w * onscreenButtonX[ONSCREEN_BUTTON_D], -h * onscreenButtonY[ONSCREEN_BUTTON_D]);
-    onscreenButtonSprite[ONSCREEN_BUTTON_D].position = buttonPos;
-    onscreenButtonSprite[ONSCREEN_BUTTON_D].fillColor = [UIColor yellowColor];
-    onscreenButtonSprite[ONSCREEN_BUTTON_D].alpha = 0.2f;
-    [self addChild:onscreenButtonSprite[ONSCREEN_BUTTON_D]];
+    buttonStart = [self createButton:@"START"];
+    [buttonStart addTarget:self action:@selector(startButtonPressed) forControlEvents:UIControlEventTouchDown];
+    [buttonStart addTarget:self action:@selector(startButtonReleased) forControlEvents:UIControlEventTouchUpInside];
+    buttonStart.frame = CGRectMake(viewSize.width - buttonWidth, 10, buttonWidth, buttonHeight2);
+    [self.view addSubview:buttonStart];
     
-    coinButtonSprite = [SKShapeNode shapeNodeWithCircleOfRadius:onscreenButtonSize];
-    coinButtonSprite.name = @"coinbutton";
-    buttonPos = CGPointMake(-w + 16, h - 16);
-    coinButtonSprite.position = buttonPos;
-    coinButtonSprite.fillColor = [UIColor greenColor];
-    coinButtonSprite.alpha = 0.2f;
-    [self addChild:coinButtonSprite];
+    buttonExit = [self createButton:@"EXIT"];
+    [buttonExit addTarget:self action:@selector(exitButtonPressed) forControlEvents:UIControlEventTouchDown];
+    [buttonExit addTarget:self action:@selector(exitButtonReleased) forControlEvents:UIControlEventTouchUpInside];
+    buttonExit.frame = CGRectMake(0, viewSize.height - (buttonHeight2 + 10), buttonWidth, buttonHeight2);
+    [self.view addSubview:buttonExit];
     
-    startButtonSprite = [SKShapeNode shapeNodeWithCircleOfRadius:onscreenButtonSize];
-    startButtonSprite.name = @"startbutton";
-    buttonPos = CGPointMake(w - 16, h - 16);
-    startButtonSprite.position = buttonPos;
-    startButtonSprite.fillColor = [UIColor greenColor];
-    startButtonSprite.alpha = 0.2f;
-    [self addChild:startButtonSprite];
+    buttonAction1 = [self createButton:@"BUTTON1"];
+    [buttonAction1 addTarget:self action:@selector(action1ButtonPressed) forControlEvents:UIControlEventTouchDown];
+    [buttonAction1 addTarget:self action:@selector(action1ButtonReleased) forControlEvents:UIControlEventTouchUpInside];
+    buttonAction1.frame = CGRectMake(viewSize.width - buttonWidth, viewSize.height - actionButtonY[0], buttonWidth, buttonHeight);
+    [self.view addSubview:buttonAction1];
     
-    exitButtonSprite = [SKShapeNode shapeNodeWithCircleOfRadius:onscreenButtonSize];
-    exitButtonSprite.name = @"exitbutton";
-    buttonPos = CGPointMake(-w + 16, -h + 16);
-    exitButtonSprite.position = buttonPos;
-    exitButtonSprite.fillColor = [UIColor redColor];
-    exitButtonSprite.alpha = 0.2f;
-    [self addChild:exitButtonSprite];
+    buttonAction2 = [self createButton:@"BUTTON2"];
+    [buttonAction2 addTarget:self action:@selector(action2ButtonPressed) forControlEvents:UIControlEventTouchDown];
+    [buttonAction2 addTarget:self action:@selector(action2ButtonReleased) forControlEvents:UIControlEventTouchUpInside];
+    buttonAction2.frame = CGRectMake(viewSize.width - buttonWidth, viewSize.height - actionButtonY[1], buttonWidth, buttonHeight);
+    [self.view addSubview:buttonAction2];
     
-    sortButtonSprite = [SKShapeNode shapeNodeWithCircleOfRadius:onscreenButtonSize];
-    sortButtonSprite.name = @"sortbutton";
-    buttonPos = CGPointMake(0, h - 16);
-    sortButtonSprite.position = buttonPos;
-    sortButtonSprite.fillColor = [UIColor yellowColor];
-    sortButtonSprite.alpha = 0.2f;
-    [self addChild:sortButtonSprite];
+    buttonAction3 = [self createButton:@"BUTTON3"];
+    [buttonAction3 addTarget:self action:@selector(action3ButtonPressed) forControlEvents:UIControlEventTouchDown];
+    [buttonAction3 addTarget:self action:@selector(action3ButtonReleased) forControlEvents:UIControlEventTouchUpInside];
+    buttonAction3.frame = CGRectMake(viewSize.width - buttonWidth, viewSize.height - actionButtonY[2], buttonWidth, buttonHeight);
+    [self.view addSubview:buttonAction3];
+    
+    buttonAction4 = [self createButton:@"BUTTON4"];
+    [buttonAction4 addTarget:self action:@selector(action4ButtonPressed) forControlEvents:UIControlEventTouchDown];
+    [buttonAction4 addTarget:self action:@selector(action4ButtonReleased) forControlEvents:UIControlEventTouchUpInside];
+    buttonAction4.frame = CGRectMake(viewSize.width - buttonWidth, viewSize.height - actionButtonY[3], buttonWidth, buttonHeight);
+    [self.view addSubview:buttonAction4];
     
     [self handleOnscreenButtonsEnable:NO];
-}
 #endif
+}
 
 // iCade support
 CGPoint iCadeStickCenter;
@@ -655,37 +774,28 @@ void fillBufferData(UINT32 *buf, int width, int height)
         }
     }
 #endif
-
+    
 #if USE_TOUCH_CONTROLS
-    CGPoint buttonPos;
-    buttonPos = CGPointMake(x * onscreenButtonX[ONSCREEN_BUTTON_A], -y * onscreenButtonY[ONSCREEN_BUTTON_A]);
-    onscreenButtonSprite[ONSCREEN_BUTTON_A].position = buttonPos;
-    
-    buttonPos = CGPointMake(x * onscreenButtonX[ONSCREEN_BUTTON_B], -y * onscreenButtonY[ONSCREEN_BUTTON_B]);
-    onscreenButtonSprite[ONSCREEN_BUTTON_B].position = buttonPos;
-    
-    buttonPos = CGPointMake(x * onscreenButtonX[ONSCREEN_BUTTON_C], -y * onscreenButtonY[ONSCREEN_BUTTON_C]);
-    onscreenButtonSprite[ONSCREEN_BUTTON_C].position = buttonPos;
-    
-    buttonPos = CGPointMake(x * onscreenButtonX[ONSCREEN_BUTTON_D], -y * onscreenButtonY[ONSCREEN_BUTTON_D]);
-    onscreenButtonSprite[ONSCREEN_BUTTON_D].position = buttonPos;
-
-    if (coinButtonSprite != nil)
+    int buttonWidth = 100;
+    int buttonHeight = 90;
+    int buttonHeight2 = 50;
+    if ([UIDevice currentDevice].userInterfaceIdiom == UIUserInterfaceIdiomPhone)
     {
-        coinButtonSprite.position = CGPointMake(-x + 16, y - 16);
+        buttonWidth = 50;
+        buttonHeight = 50;
+        buttonHeight2 = 50;
+        actionButtonY[0] = 50;
+        actionButtonY[1] = 110;
+        actionButtonY[2] = 170;
+        actionButtonY[3] = 230;
     }
-    if (startButtonSprite != nil)
-    {
-        startButtonSprite.position = CGPointMake(x - 16, y - 16);
-    }
-    if (exitButtonSprite != nil)
-    {
-        exitButtonSprite.position = CGPointMake(-x + 16, -y + 16);
-    }
-    if (sortButtonSprite != nil)
-    {
-        sortButtonSprite.position = CGPointMake(0, y - 16);
-    }
+    buttonCoin.frame = CGRectMake(0, 10, buttonWidth, buttonHeight2);
+    buttonStart.frame = CGRectMake(viewSize.width - buttonWidth, 10, buttonWidth, buttonHeight2);
+    buttonExit.frame = CGRectMake(0, viewSize.height - (buttonHeight2 + 10), buttonWidth, buttonHeight2);
+    buttonAction1.frame = CGRectMake(viewSize.width - buttonWidth, viewSize.height - actionButtonY[0], buttonWidth, buttonHeight);
+    buttonAction2.frame = CGRectMake(viewSize.width - buttonWidth, viewSize.height - actionButtonY[1], buttonWidth, buttonHeight);
+    buttonAction3.frame = CGRectMake(viewSize.width - buttonWidth, viewSize.height - actionButtonY[2], buttonWidth, buttonHeight);
+    buttonAction4.frame = CGRectMake(viewSize.width - buttonWidth, viewSize.height - actionButtonY[3], buttonWidth, buttonHeight);
 #endif
     
 #if !USE_TABLEVIEW
@@ -709,24 +819,9 @@ CGPoint CGPointClamp(CGPoint p, float range)
     return CGPointMake(dx, dy);
 }
 
-#if USE_TOUCH_CONTROLS
--(void)handleOnscreenButtonsEnable:(BOOL)on
-{
-    for (int i = 0; i < ONSCREEN_BUTTON_MAX; i++)
-    {
-        if (onscreenButtonSprite[i] != nil)
-        {
-            onscreenButtonSprite[i].hidden = (on ? NO : YES);
-        }
-    }
-    coinButtonSprite.hidden = (on ? NO : YES);
-    startButtonSprite.hidden = (on ? NO : YES);
-    exitButtonSprite.hidden = (on ? NO : YES);
-    sortButtonSprite.hidden = (on ? NO : YES);
-}
-
 -(void)handleOnscreenJoystickAnchor:(CGPoint)touchPos
 {
+#if USE_TOUCH_CONTROLS
     if (touchPos.x < 0)
     {
         onscreenJoystickLeftAnchor = touchPos;
@@ -734,15 +829,12 @@ CGPoint CGPointClamp(CGPoint p, float range)
         onscreenNubLeft.position = CGPointZero;
         onscreenJoystickLeft.hidden = NO;
     }
-    
-    if (touchPos.x > 0)
-    {
-    }
-    
+#endif
 }
 
 -(void)handleOnscreenJoystickMove:(CGPoint)touchPos
 {
+#if USE_TOUCH_CONTROLS
     if (touchPos.x < 0)
     {
         CGPoint offset = CGPointMake(touchPos.x - onscreenJoystickLeftAnchor.x, touchPos.y - onscreenJoystickLeftAnchor.y);
@@ -751,139 +843,66 @@ CGPoint CGPointClamp(CGPoint p, float range)
         touchInputX = offset.x / 8.0f;
         touchInputY = offset.y / 8.0f;
     }
+#endif
 }
 
 -(void)handleOnscreenJoystickOff:(CGPoint)touchPos
 {
+#if USE_TOUCH_CONTROLS
     if (touchPos.x < 0)
     {
         onscreenJoystickLeft.hidden = YES;
     }
-}
-
--(void)handleOnscreenButtons:(CGPoint)touchPos on:(BOOL)on
-{
-    int nearestIndex = -1;
-    SKNode *node = [self nodeAtPoint:touchPos];
-    if (node != nil)
-    {
-        //NSLog(@"touched node=%@", node.name);
-        for (int i = 0; i < ONSCREEN_BUTTON_MAX; i++)
-        {
-            if (onscreenButtonSprite[i] != nil && onscreenButtonSprite[i].hidden == NO)
-            {
-                if (onscreenButtonSprite[i] == node)
-                {
-                    nearestIndex = i;
-                    break;
-                }
-            }
-        }
-        if (nearestIndex == -1)
-        {
-            if (on)
-            {
-                if ([node.name isEqualToString:@"coinbutton"])
-                {
-                    coinButtonPressed = TRUE;
-                }
-                else if ([node.name isEqualToString:@"startbutton"])
-                {
-                    startButtonPressed = TRUE;
-                }
-                else if ([node.name isEqualToString:@"sortbutton"])
-                {
-                    NSLog(@"sort");
-                    sortMethod = (sortMethod == 0 ? 1 : 0);
-                    [self initAndSortDriverArray];
-                    [self updateGameList];
-                }
-                else if ([node.name isEqualToString:@"exitbutton"])
-                {
-                    exitButtonPressed = TRUE;
-                }
-            }
-            else
-            {
-                coinButtonPressed = FALSE;
-                startButtonPressed = FALSE;
-                exitButtonPressed = FALSE;
-            }
-        }
-        if (nearestIndex >= 0)
-        {
-            if (on)
-            {
-                onscreenButtonSprite[nearestIndex].fillColor = [UIColor darkGrayColor];
-            }
-            else
-            {
-                UIColor *color = nil;
-                switch (nearestIndex)
-                {
-                    case ONSCREEN_BUTTON_A:
-                        color = [UIColor greenColor];
-                        break;
-                    case ONSCREEN_BUTTON_B:
-                        color = [UIColor redColor];
-                        break;
-                    case ONSCREEN_BUTTON_C:
-                        color = [UIColor blueColor];
-                        break;
-                    case ONSCREEN_BUTTON_D:
-                        color = [UIColor yellowColor];
-                        break;
-                }
-                if (color != nil)
-                {
-                    onscreenButtonSprite[nearestIndex].fillColor = color;
-                }
-            }
-            onscreenButton[nearestIndex] = (on) ? 1 : 0;
-        }
-    }
-    [self handleOnscreenButtonsEnable:YES];
-}
 #endif
+}
 
-CGPoint startTouchPos;
--(void)touchDownAtPoint:(CGPoint)pos
+void OnScreenButtonsEnable(BOOL on)
 {
-    startTouchPos = pos;
+    [myObjectSelf handleOnscreenButtonsEnable:on];
+}
 
+-(void)handleOnscreenButtonsEnable:(BOOL)on
+{
 #if USE_TOUCH_CONTROLS
-    [self handleOnscreenJoystickAnchor:pos];
-    [self handleOnscreenButtons:pos on:YES];
+    if (buttonCoin.hidden == on)
+    {
+        buttonCoin.hidden = (on ? NO : YES);
+        buttonStart.hidden = (on ? NO : YES);
+        buttonExit.hidden = (on ? NO : YES);
+        buttonAction1.hidden = (on ? NO : YES);
+        buttonAction2.hidden = (on ? NO : YES);
+        buttonAction3.hidden = (on ? NO : YES);
+        buttonAction4.hidden = (on ? NO : YES);
+    }
 #endif
-    
-    //debugTouchSprite.hidden = NO;
-    //debugTouchSprite.position = startTouchPos;
 }
 
 int touchInputY;
 int touchInputX;
+int touchSens = 25;
+CGPoint startTouchPos;
+
+-(void)touchDownAtPoint:(CGPoint)pos
+{
+    startTouchPos = pos;
+    [self handleOnscreenJoystickAnchor:pos];
+}
 
 -(void)touchMovedToPoint:(CGPoint)pos
 {
-#if USE_TOUCH_CONTROLS
     [self handleOnscreenJoystickMove:pos];
-#endif
-    
     startTouchPos = pos;
-    
-    //debugTouchSprite.position = startTouchPos;
 }
 
 -(void)touchUpAtPoint:(CGPoint)pos
 {
     touchInputX = 0;
     touchInputY = 0;
-#if USE_TOUCH_CONTROLS
     [self handleOnscreenJoystickOff:pos];
-    [self handleOnscreenButtons:pos on:NO];
-#endif
-    
-    //debugTouchSprite.hidden = YES;
+}
+
+-(void)touchTapAtPoint:(CGPoint)pos
+{
 }
 
 -(void)touchesBegan:(NSSet *)touches withEvent:(UIEvent *)event
@@ -908,6 +927,12 @@ int touchInputX;
     {
         [self touchUpAtPoint:[t locationInNode:self]];
         touchTapCount = t.tapCount;
+#if USE_TOUCH_CONTROLS
+        if (touchTapCount > 0)
+        {
+            [self touchTapAtPoint:[t locationInNode:self]];
+        }
+#endif
     }
 }
 
@@ -1021,6 +1046,34 @@ int touchInputX;
     return YES;
 }
 
+-(void)jumpToSection:(NSString *)str
+{
+    const char *s = [str UTF8String];
+    char c = s[0];
+    if (sortMethod == 0) // sort by game name
+    {
+        for (int i = 0; i < gameDriverCount; i++)
+        {
+            if (gameDriverList[i].gameDriver->description[0] >= c)
+            {
+                selected_game = i;
+                return;
+            }
+        }
+    }
+    else
+    {
+        for (int i = 0; i < gameDriverCount; i++)
+        {
+            if (gameDriverList[i].gameDriver->manufacturer[0] >= c)
+            {
+                selected_game = i;
+                return;
+            }
+        }
+    }
+}
+
 // called 60 times/sec
 -(void)update:(CFTimeInterval)currentTime
 {
@@ -1037,6 +1090,7 @@ int touchInputX;
         {
             [gameDriverTableView setHidden:YES];
         }
+        [self handleOnscreenButtonsEnable:YES];
         
         game_index = gameDriverList[selected_game].gameIndex;
         [NSThread detachNewThreadSelector:@selector(runGameThread) toTarget:self withObject:nil];
@@ -1066,6 +1120,7 @@ int touchInputX;
         {
             [gameDriverTableView setHidden:NO];
         }
+        [self handleOnscreenButtonsEnable:NO];
 
         [self free_frame_buffer];
         runState = 0;
@@ -1086,9 +1141,6 @@ int touchInputX;
     NSArray *controllerList = [GCController controllers];
     if (controllerList.count > 0)
     {
-#if USE_TOUCH_CONTROLS
-        [self handleOnscreenButtonsEnable:NO];
-#endif
         for (int i = 0; i < controllerList.count; i++)
         {
             GCController *controller = (GCController *)[controllerList objectAtIndex:i];
@@ -1201,51 +1253,6 @@ int touchInputX;
         buttonPress = NO;
     }
     
-    // disabling touch controls until a better solution comes along - touch controls are really a bad way to play arcade games anyways
-#if USE_TOUCH_CONTROLS
-    // handle touch controls
-    touchAdvTimer += deltaTime;
-    {
-        if (touchInputY < 0)
-        {
-            if (touchAdvTimer >= touchAdvDelay)
-            {
-                update_list = [self next_game:1];
-                touchAdvTimer = 0;
-            }
-        }
-        else if (touchInputY > 0)
-        {
-            if (touchAdvTimer >= touchAdvDelay)
-            {
-                update_list = [self prev_game:1];
-                touchAdvTimer = 0;
-            }
-        }
-        else if (touchInputX > 0)
-        {
-            if (touchAdvTimer >= touchAdvDelay)
-            {
-                update_list = [self next_game:9];
-                touchAdvTimer = 0;
-            }
-        }
-        else if (touchInputX < 0)
-        {
-            if (touchAdvTimer >= touchAdvDelay)
-            {
-                update_list = [self prev_game:9];
-                touchAdvTimer = 0;
-            }
-        }
-        else if (touchTapCount == 2)
-        {
-            buttonPress = NO;
-            touchTapCount = 0;
-            runState = 1;
-        }
-    }
-#endif
     
     if (update_list)
     {

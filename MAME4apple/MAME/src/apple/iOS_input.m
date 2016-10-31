@@ -176,6 +176,8 @@ extern BOOL coinButtonPressed;
 extern BOOL startButtonPressed;
 extern BOOL exitButtonPressed;
 
+extern void OnScreenButtonsEnable(BOOL on);
+
 void apple_init_input()
 {
 }
@@ -194,6 +196,7 @@ void update_key_array()
     NSArray *controllerList = [GCController controllers];
     if (controllerList.count > 0)
     {
+        OnScreenButtonsEnable(FALSE);
         for (int i = 0; i < controllerList.count; i++)
         {
             GCController *controller = (GCController *)[controllerList objectAtIndex:i];
@@ -278,6 +281,10 @@ void update_key_array()
                 }
             }
         }
+    }
+    else
+    {
+        OnScreenButtonsEnable(TRUE);
     }
 
     if (iCadeButtonState[ICADEBUTTON_A] || onscreenButton[ONSCREEN_BUTTON_A] != 0)
@@ -370,7 +377,7 @@ void update_key_array()
     {
         key[KEY_DOWN] = 1;
     }
-    if (touchTapCount > 0)
+    //if (touchTapCount > 0)
     {
         if (coinButtonPressed)
         {
