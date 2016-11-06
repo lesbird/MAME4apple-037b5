@@ -800,6 +800,16 @@ void decompose_rom_sample_path (const char *rompath, const char *samplepath);
 
 NSData *config_file_cache;
 
+const char *getROMpath()
+{
+    return rompath;
+}
+
+const char *getSamplePath()
+{
+    return samplepath;
+}
+
 void get_rom_sample_path (int argc, char **argv, int game_index, char *override_default_rompath)
 {
     game = game_index;

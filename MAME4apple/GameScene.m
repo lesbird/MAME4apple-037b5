@@ -71,10 +71,13 @@ typedef struct GameDriverList
 {
     struct GameDriver *gameDriver;
     int gameIndex;
+    BOOL hasRom;
 } GameDriverList_t;
 
 int gameDriverCount;
+int gameDriverROMCount;
 GameDriverList_t *gameDriverList;
+GameDriverList_t *gameDriverROMList;
 NSArray *sortedGameList;
 
 UITableView *gameDriverTableView;
@@ -103,7 +106,8 @@ GameScene *myObjectSelf;
 
 -(NSInteger)tableView:(UITableView *)tableView numberOfRowsInSection:(NSInteger)section
 {
-    return gameDriverCount;
+    //return gameDriverCount;
+    return gameDriverROMCount;
 }
 
 -(UITableViewCell *)tableView:(UITableView *)tableView cellForRowAtIndexPath:(NSIndexPath *)indexPath
@@ -114,7 +118,8 @@ GameScene *myObjectSelf;
     {
         cell = [[UITableViewCell alloc] initWithStyle:UITableViewCellStyleSubtitle  reuseIdentifier:MyIdentifier];
     }
-    if ((gameDriverList[indexPath.row].gameDriver->flags & (GAME_NOT_WORKING | NOT_A_DRIVER)) != 0)
+    GameDriverList_t *gameDriver = &gameDriverROMList[indexPath.row];
+    if ((gameDriver->gameDriver->flags & (GAME_NOT_WORKING | NOT_A_DRIVER)) != 0 || gameDriver->hasRom == FALSE)
     {
         cell.textLabel.textColor = [UIColor redColor];
     }
@@ -122,14 +127,15 @@ GameScene *myObjectSelf;
     {
         cell.textLabel.textColor = [UIColor blackColor];
     }
-    cell.textLabel.text = [NSString stringWithUTF8String:gameDriverList[indexPath.row].gameDriver->description];
-    cell.detailTextLabel.text = [NSString stringWithFormat:@"%s %s", gameDriverList[indexPath.row].gameDriver->year, gameDriverList[indexPath.row].gameDriver->manufacturer];
+    cell.textLabel.text = [NSString stringWithUTF8String:gameDriver->gameDriver->description];
+    cell.detailTextLabel.text = [NSString stringWithFormat:@"%s %s", gameDriver->gameDriver->year, gameDriver->gameDriver->manufacturer];
     return cell;
 }
 
 -(void)tableView:(UITableView *)tableView didSelectRowAtIndexPath:(NSIndexPath *)indexPath
 {
-    selected_game = (int)indexPath.row;
+    int i = (int)indexPath.row;
+    selected_game = gameDriverROMList[i].gameIndex;
     runState = 1;
 }
 
@@ -148,7 +154,7 @@ GameScene *myObjectSelf;
     static NSString *string = nil;
     if (string == nil)
     {
-        string = [NSString stringWithFormat:@"%d games", gameDriverCount];
+        string = [NSString stringWithFormat:@"%d games", gameDriverROMCount];
     }
     return string;
 }
@@ -160,7 +166,7 @@ GameScene *myObjectSelf;
 
 -(NSInteger)tableView:(UITableView *)tableView sectionForSectionIndexTitle:(NSString *)title atIndex:(NSInteger)index
 {
-    NSLog(@"section index=%ld %@", (long)index, (NSString *)sectionIndexArray[index]);
+    //NSLog(@"section index=%ld %@", (long)index, (NSString *)sectionIndexArray[index]);
     [self jumpToSection:sectionIndexArray[index]];
     NSIndexPath *indexPath = [NSIndexPath indexPathForRow:selected_game inSection:0];
     [gameDriverTableView selectRowAtIndexPath:indexPath animated:YES scrollPosition:UITableViewScrollPositionMiddle];
@@ -327,7 +333,7 @@ int list_step = 40; // gap between lines in game list
     gameDriverTableView.sectionFooterHeight = 64;
     gameDriverTableView.delegate = self;
     gameDriverTableView.dataSource = self;
-    [gameDriverTableView reloadData];
+    //[gameDriverTableView reloadData];
     [self.view addSubview:gameDriverTableView];
 #else
     int height = view.bounds.size.height;
@@ -405,6 +411,12 @@ int list_step = 40; // gap between lines in game list
     char *argv[] = {""};
     parse_cmdline(0, argv, game_index, nil);
     
+    [self checkAvailableROMs];
+    
+#if USE_TABLEVIEW
+    [gameDriverTableView reloadData];
+#endif
+    
     myObjectSelf = self;
 }
 
@@ -426,6 +438,7 @@ int list_step = 40; // gap between lines in game list
         {
             gameDriverList[i].gameDriver = (struct GameDriver *)drivers[i];
             gameDriverList[i].gameIndex = i;
+            gameDriverList[i].hasRom = FALSE;
         }
     }
     
@@ -440,9 +453,50 @@ int list_step = 40; // gap between lines in game list
             break;
     }
     
-#if USE_TABLEVIEW
-    [gameDriverTableView reloadData];
-#endif
+//#if USE_TABLEVIEW
+//    [gameDriverTableView reloadData];
+//#endif
+}
+
+extern const char *getROMpath();
+
+-(void)checkAvailableROMs
+{
+    int count = 0;
+    
+    BOOL bIsDir;
+    for (int i = 0; i < gameDriverCount; i++)
+    {
+        NSString *path = [NSString stringWithUTF8String:getROMpath()];
+        [path stringByAppendingPathComponent:[NSString stringWithUTF8String:gameDriverList[i].gameDriver->name]];
+        if ([[NSFileManager defaultManager] fileExistsAtPath:path isDirectory:&bIsDir])
+        {
+            if ((gameDriverList[i].gameDriver->flags & (GAME_NOT_WORKING | NOT_A_DRIVER)) == 0)
+            {
+                //NSLog(@"ROM %s exists", gameDriverList[i].gameDriver->name);
+                gameDriverList[i].hasRom = TRUE;
+                count++;
+            }
+        }
+        else
+        {
+            gameDriverList[i].hasRom = FALSE;
+        }
+    }
+    // we want to show only games with existing ROMs
+    int n = 0;
+    gameDriverROMList = (GameDriverList_t *)malloc(sizeof(GameDriverList_t) * count);
+    for (int i = 0; i < gameDriverCount; i++)
+    {
+        if (gameDriverList[i].hasRom)
+        {
+            gameDriverROMList[n].gameDriver = gameDriverList[i].gameDriver;
+            gameDriverROMList[n].gameIndex = i;
+            gameDriverROMList[n].hasRom = TRUE;
+            n++;
+        }
+    }
+    gameDriverROMCount = count;
 }
 
 -(void)initOnScreenJoystick
@@ -1052,9 +1106,9 @@ CGPoint startTouchPos;
     char c = s[0];
     if (sortMethod == 0) // sort by game name
     {
-        for (int i = 0; i < gameDriverCount; i++)
+        for (int i = 0; i < gameDriverROMCount; i++)
         {
-            if (gameDriverList[i].gameDriver->description[0] >= c)
+            if (gameDriverROMList[i].gameDriver->description[0] >= c)
             {
                 selected_game = i;
                 return;
@@ -1063,9 +1117,9 @@ CGPoint startTouchPos;
     }
     else
     {
-        for (int i = 0; i < gameDriverCount; i++)
+        for (int i = 0; i < gameDriverROMCount; i++)
         {
-            if (gameDriverList[i].gameDriver->manufacturer[0] >= c)
+            if (gameDriverROMList[i].gameDriver->manufacturer[0] >= c)
             {
                 selected_game = i;
                 return;
