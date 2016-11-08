@@ -468,7 +468,8 @@ extern const char *getROMpath();
     for (int i = 0; i < gameDriverCount; i++)
     {
         NSString *path = [NSString stringWithUTF8String:getROMpath()];
-        [path stringByAppendingPathComponent:[NSString stringWithUTF8String:gameDriverList[i].gameDriver->name]];
+        path = [path stringByAppendingPathComponent:[NSString stringWithUTF8String:gameDriverList[i].gameDriver->name]];
+        path = [path stringByAppendingPathExtension:@"zip"];
         if ([[NSFileManager defaultManager] fileExistsAtPath:path isDirectory:&bIsDir])
         {
             if ((gameDriverList[i].gameDriver->flags & (GAME_NOT_WORKING | NOT_A_DRIVER)) == 0)
@@ -480,6 +481,7 @@ extern const char *getROMpath();
         }
         else
         {
+            //NSLog(@"ROM %s does not exist", gameDriverList[i].gameDriver->name);
             gameDriverList[i].hasRom = FALSE;
         }
     }
