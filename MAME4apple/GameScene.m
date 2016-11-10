@@ -324,7 +324,7 @@ int list_step = 40; // gap between lines in game list
     NSLog(@"view bounds=%f,%f", viewSize.width, viewSize.height);
     
 #if USE_TABLEVIEW
-    //[self setupSectionIndex];
+    [self setupSectionIndex];
     CGRect insetbounds = CGRectInset(view.bounds, TABLE_INSET_WIDTH, TABLE_INSET_HEIGHT);
     gameDriverTableView = [[UITableView alloc] initWithFrame:insetbounds];
     gameDriverTableView.autoresizingMask = UIViewAutoresizingFlexibleHeight|UIViewAutoresizingFlexibleWidth;
