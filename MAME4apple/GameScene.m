@@ -12,11 +12,15 @@
 #include "driver.h"
 
 #if TARGET_OS_TV
-#define USE_TABLEVIEW 0
+#define USE_TABLEVIEW 1
 #define USE_TOUCH_CONTROLS 0
+#define TABLE_INSET_WIDTH 100
+#define TABLE_INSET_HEIGHT 50
 #else
 #define USE_TABLEVIEW 1
 #define USE_TOUCH_CONTROLS 1
+#define TABLE_INSET_WIDTH 0
+#define TABLE_INSET_HEIGHT 0
 #endif
 #define USE_RENDERTHREAD 0
 
@@ -315,19 +319,14 @@ int list_step = 40; // gap between lines in game list
 {
     [self initAndSortDriverArray];
     
-#if !USE_TABLEVIEW
-    gameListNode = [SKNode node];
-    gameListNode.name = @"gamelistnode";
-    [self addChild:gameListNode];
-#endif
-    
     viewSize = view.bounds.size;
     
     NSLog(@"view bounds=%f,%f", viewSize.width, viewSize.height);
     
 #if USE_TABLEVIEW
-    [self setupSectionIndex];
-    gameDriverTableView = [[UITableView alloc] initWithFrame:view.bounds];
+    //[self setupSectionIndex];
+    CGRect insetbounds = CGRectInset(view.bounds, TABLE_INSET_WIDTH, TABLE_INSET_HEIGHT);
+    gameDriverTableView = [[UITableView alloc] initWithFrame:insetbounds];
     gameDriverTableView.autoresizingMask = UIViewAutoresizingFlexibleHeight|UIViewAutoresizingFlexibleWidth;
     gameDriverTableView.sectionHeaderHeight = 64;
     gameDriverTableView.sectionFooterHeight = 64;
@@ -338,7 +337,7 @@ int list_step = 40; // gap between lines in game list
 #else
     int height = view.bounds.size.height;
     int width = view.bounds.size.width;
-
+    
     float x = -(width / 2.5f);
     
     gameListCount = height / list_step;
@@ -363,7 +362,7 @@ int list_step = 40; // gap between lines in game list
         gameListDesc[i].fontColor = [UIColor yellowColor];
         [gameListNode addChild:gameListDesc[i]];
     }
-
+    
     [self computeFrameBufferScale:width height:height];
     [self updateGameList];
 #endif
@@ -453,9 +452,9 @@ int list_step = 40; // gap between lines in game list
             break;
     }
     
-//#if USE_TABLEVIEW
-//    [gameDriverTableView reloadData];
-//#endif
+    //#if USE_TABLEVIEW
+    //    [gameDriverTableView reloadData];
+    //#endif
 }
 
 extern const char *getROMpath();
@@ -528,7 +527,7 @@ extern const char *getROMpath();
     int buttonWidth = 100;
     int buttonHeight = 90;
     int buttonHeight2 = 50;
-
+    
     if ([UIDevice currentDevice].userInterfaceIdiom == UIUserInterfaceIdiomPhone)
     {
         buttonWidth = 50;
@@ -800,7 +799,7 @@ void fillBufferData(UINT32 *buf, int width, int height)
         frameBufferNode.yScale = -scalex; // flip the Y since OpenGL inverts the texture data
         frameBufferNode.xScale = scalex;
     }
-
+    
     if (aspecthx2)
     {
         frameBufferNode.yScale *= 2;
@@ -809,11 +808,11 @@ void fillBufferData(UINT32 *buf, int width, int height)
 #if !USE_TABLEVIEW
     float x = viewSize.width / 2;
     float y = viewSize.height / 2;
-
+    
     for (int i = 0; i < gameListCount; i++)
     {
         float lx = viewSize.width / 2.5f;
-
+        
         float ly1 = gameList[i].position.y;
         gameList[i].position = CGPointMake(-lx, ly1);
         float ly2 = gameListDesc[i].position.y;
@@ -1177,7 +1176,7 @@ CGPoint startTouchPos;
             [gameDriverTableView setHidden:NO];
         }
         [self handleOnscreenButtonsEnable:NO];
-
+        
         [self free_frame_buffer];
         runState = 0;
     }
@@ -1303,7 +1302,7 @@ CGPoint startTouchPos;
         }
         pressCount++;
     }
-
+    
     if (pressCount == 0)
     {
         buttonPress = NO;
@@ -1314,7 +1313,10 @@ CGPoint startTouchPos;
     {
 #if USE_TABLEVIEW
         NSIndexPath *indexPath = [NSIndexPath indexPathForRow:selected_game inSection:0];
-        [gameDriverTableView selectRowAtIndexPath:indexPath animated:YES scrollPosition:UITableViewScrollPositionMiddle];
+        NSInteger numRows = [self tableView:gameDriverTableView numberOfRowsInSection:0];
+        if (indexPath.section == 0 && indexPath.row < numRows) {
+            [gameDriverTableView selectRowAtIndexPath:indexPath animated:YES scrollPosition:UITableViewScrollPositionMiddle];
+        }
 #else
         [self updateGameList];
 #endif
@@ -1394,9 +1396,9 @@ CGPoint startTouchPos;
     NSLog(@"runGameThread: game_index=%d", game_index);
     
     gameListNode.hidden = YES;
-
+    
     int res = run_game(game_index);
-
+    
     gameListNode.hidden = NO;
     
     NSLog(@"run_game(%d) exited with code %d", game_index, res);
