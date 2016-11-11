@@ -12,7 +12,7 @@
 #include "driver.h"
 
 #if TARGET_OS_TV
-#define USE_TABLEVIEW 1
+#define USE_TABLEVIEW 0
 #define USE_TOUCH_CONTROLS 0
 #define TABLE_INSET_WIDTH 100
 #define TABLE_INSET_HEIGHT 50
@@ -319,6 +319,12 @@ int list_step = 40; // gap between lines in game list
 {
     [self initAndSortDriverArray];
     
+#if !USE_TABLEVIEW
+    gameListNode = [SKNode node];
+    gameListNode.name = @"gamelistnode";
+    [self addChild:gameListNode];
+#endif
+
     viewSize = view.bounds.size;
     
     NSLog(@"view bounds=%f,%f", viewSize.width, viewSize.height);
