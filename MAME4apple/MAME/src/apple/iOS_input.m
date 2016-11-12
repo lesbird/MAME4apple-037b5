@@ -187,6 +187,154 @@ const struct KeyboardInfo *osd_get_key_list(void)
     return keylist;
 }
 
+//
+// default key mappings (from inptport.c)
+// player 1:
+// up = KEYCODE_UP
+// down = KEYCODE_DOWN
+// left = KEYCODE_LEFT
+// right = KEYCODE_RIGHT
+// button1 = KEYCODE_LCONTROL
+// button2 = KEYCODE_LALT
+// button3 = KEYCODE_SPACE
+// button4 = KEYCODE_LSHIFT
+// player 2:
+// up = KEYCODE_R
+// down = KEYCODE_F
+// left = KEYCODE_D
+// right = KEYCODE_G
+// button1 = KEYCODE_A
+// button2 = KEYCODE_S
+// button3 = KEYCODE_Q
+// button4 = KEYCODE_W
+//
+void button_up_pressed(int playerNum)
+{
+    if (playerNum == 0)
+    {
+        key[KEY_UP] = 1;
+        //key[KEY_E] = 1; // UI control
+    }
+    else if (playerNum == 1)
+    {
+        key[KEY_R] = 1;
+    }
+}
+
+void button_right_pressed(int playerNum)
+{
+    if (playerNum == 0)
+    {
+        key[KEY_RIGHT] = 1;
+        //key[KEY_F] = 1; // UI control
+    }
+    else if (playerNum == 1)
+    {
+        key[KEY_G] = 1;
+    }
+}
+
+void button_down_pressed(int playerNum)
+{
+    if (playerNum == 0)
+    {
+        key[KEY_DOWN] = 1;
+        //key[KEY_D] = 1;
+    }
+    else if (playerNum == 1)
+    {
+        key[KEY_F] = 1;
+    }
+}
+
+void button_left_pressed(int playerNum)
+{
+    if (playerNum == 0)
+    {
+        key[KEY_LEFT] = 1;
+        //key[KEY_S] = 1;
+    }
+    else if (playerNum == 1)
+    {
+        key[KEY_D] = 1;
+    }
+}
+
+void button_1_pressed(int playerNum)
+{
+    if (playerNum == 0)
+    {
+        key[KEY_LCONTROL] = 1;
+        key[KEY_ENTER] = 1; // UI control
+    }
+    else if (playerNum == 1)
+    {
+        key[KEY_A] = 1;
+    }
+}
+
+void button_2_pressed(int playerNum)
+{
+    if (playerNum == 0)
+    {
+        key[KEY_ALT] = 1;
+    }
+    else if (playerNum == 1)
+    {
+        key[KEY_S] = 1;
+    }
+}
+
+void button_3_pressed(int playerNum)
+{
+    if (playerNum == 0)
+    {
+        key[KEY_SPACE] = 1;
+    }
+    else if (playerNum == 1)
+    {
+        key[KEY_Q] = 1;
+    }
+}
+
+void button_4_pressed(int playerNum)
+{
+    if (playerNum == 0)
+    {
+        key[KEY_LSHIFT] = 1;
+    }
+    else if (playerNum == 1)
+    {
+        key[KEY_W] = 1;
+    }
+}
+
+void player_coin_pressed(int playerNum)
+{
+    if (playerNum == 0)
+    {
+        key[KEY_5] = 1;
+    }
+    else if (playerNum == 1)
+    {
+        key[KEY_6] = 1;
+    }
+}
+
+void player_start_pressed(int playerNum)
+{
+    if (playerNum == 0)
+    {
+        key[KEY_1] = 1;
+    }
+    else if (playerNum == 1)
+    {
+        key[KEY_2] = 1;
+    }
+}
+
+BOOL buttonState = FALSE;
+
 void update_key_array()
 {
     for (int i = 0; i < KEY_MAX; i++)
@@ -194,14 +342,23 @@ void update_key_array()
         key[i] = 0;
     }
     NSArray *controllerList = [GCController controllers];
-    if (controllerList.count > 0)
+    if (controllerList != nil && controllerList.count > 0)
     {
-        OnScreenButtonsEnable(FALSE);
+        int playerNum = 0;
+        if (buttonState != FALSE)
+        {
+            buttonState = FALSE;
+            OnScreenButtonsEnable(buttonState);
+        }
         for (int i = 0; i < controllerList.count; i++)
         {
             GCController *controller = (GCController *)[controllerList objectAtIndex:i];
             if (controller != nil)
             {
+                //if (controller.microGamepad != nil)
+                //{
+                //    continue; // skip the siri remote
+                //}
                 if (controller.gamepad != nil)
                 {
                     if (controller.gamepad.buttonY.pressed) // p1 button 3
@@ -212,49 +369,44 @@ void update_key_array()
                         }
                         else
                         {
-                            key[KEY_SPACE] = 1;
+                            button_3_pressed(playerNum);
                         }
                     }
                     if (controller.gamepad.leftShoulder.pressed)
                     {
-                        key[KEY_5] = 1;
+                        player_coin_pressed(playerNum);
                     }
                     if (controller.gamepad.rightShoulder.pressed)
                     {
-                        key[KEY_1] = 1;
+                        player_start_pressed(playerNum);
                     }
                     if (controller.gamepad.dpad.up.pressed)
                     {
-                        key[KEY_UP] = 1;
-                        key[KEY_E] = 1;
+                        button_up_pressed(playerNum);
                     }
                     if (controller.gamepad.dpad.right.pressed)
                     {
-                        key[KEY_RIGHT] = 1;
-                        key[KEY_F] = 1;
+                        button_right_pressed(playerNum);
                     }
                     if (controller.gamepad.dpad.down.pressed)
                     {
-                        key[KEY_DOWN] = 1;
-                        key[KEY_D] = 1;
+                        button_down_pressed(playerNum);
                     }
                     if (controller.gamepad.dpad.left.pressed)
                     {
-                        key[KEY_LEFT] = 1;
-                        key[KEY_S] = 1;
+                        button_left_pressed(playerNum);
                     }
                     if (controller.gamepad.buttonA.pressed) // p1 button 1
                     {
-                        key[KEY_LCONTROL] = 1;
-                        key[KEY_ENTER] = 1;
+                        button_1_pressed(playerNum);
                     }
                     if (controller.gamepad.buttonX.pressed) // p1 button 2
                     {
-                        key[KEY_ALT] = 1;
+                        button_2_pressed(playerNum);
                     }
                     if (controller.gamepad.buttonB.pressed) // p1 button 4 (also back button on Apple TV)
                     {
-                        key[KEY_LSHIFT] = 1;
+                        button_4_pressed(playerNum);
                     }
                 }
                 if (controller.extendedGamepad != nil)
@@ -279,34 +431,38 @@ void update_key_array()
                         key[KEY_F11] = 1;
                     }
                 }
+                playerNum++;
             }
         }
     }
     else
     {
-        OnScreenButtonsEnable(TRUE);
+        if (buttonState != TRUE)
+        {
+            buttonState = TRUE;
+            OnScreenButtonsEnable(buttonState);
+        }
     }
 
     if (iCadeButtonState[ICADEBUTTON_A] || onscreenButton[ONSCREEN_BUTTON_A] != 0)
     {
-        key[KEY_LCONTROL] = 1;
-        key[KEY_ENTER] = 1;
+        button_1_pressed(0);
     }
     if (iCadeButtonState[ICADEBUTTON_C] || onscreenButton[ONSCREEN_BUTTON_B] != 0)
     {
-        key[KEY_ALT] = 1;
+        button_2_pressed(0);
     }
     if (iCadeButtonState[ICADEBUTTON_E] || onscreenButton[ONSCREEN_BUTTON_C] != 0)
     {
-        key[KEY_SPACE] = 1;
+        button_3_pressed(0);
     }
     if (iCadeButtonState[ICADEBUTTON_B] || onscreenButton[ONSCREEN_BUTTON_D] != 0)
     {
-        key[KEY_LSHIFT] = 1;
+        button_4_pressed(0);
     }
     if (iCadeButtonState[ICADEBUTTON_G])
     {
-        key[KEY_5] = 1;
+        player_coin_pressed(0);
     }
     if (iCadeButtonState[ICADEBUTTON_H])
     {
@@ -323,23 +479,19 @@ void update_key_array()
     // analog stick left
     if (joyAnalogLeftY[0] < -joyAnalogDeadzone || iCadeStickCenter.y > 0)
     {
-        key[KEY_DOWN] = 1;
-        key[KEY_D] = 1;
+        button_down_pressed(0);
     }
     if (joyAnalogLeftY[0] > joyAnalogDeadzone || iCadeStickCenter.y < 0)
     {
-        key[KEY_UP] = 1;
-        key[KEY_E] = 1;
+        button_up_pressed(0);
     }
     if (joyAnalogLeftX[0] < -joyAnalogDeadzone || iCadeStickCenter.x < 0)
     {
-        key[KEY_LEFT] = 1;
-        key[KEY_S] = 1;
+        button_left_pressed(0);
     }
     if (joyAnalogLeftX[0] > joyAnalogDeadzone || iCadeStickCenter.x > 0)
     {
-        key[KEY_RIGHT] = 1;
-        key[KEY_F] = 1;
+        button_right_pressed(0);
     }
     
     // analog stick right
@@ -363,29 +515,29 @@ void update_key_array()
     // touch screen inputs (experimental)
     if (touchInputX > 0)
     {
-        key[KEY_RIGHT] = 1;
+        button_right_pressed(0);
     }
     if (touchInputX < 0)
     {
-        key[KEY_LEFT] = 1;
+        button_left_pressed(0);
     }
     if (touchInputY > 0)
     {
-        key[KEY_UP] = 1;
+        button_up_pressed(0);
     }
     if (touchInputY < 0)
     {
-        key[KEY_DOWN] = 1;
+        button_down_pressed(0);
     }
     //if (touchTapCount > 0)
     {
         if (coinButtonPressed)
         {
-            key[KEY_5] = 1;
+            player_coin_pressed(0);
         }
         if (startButtonPressed)
         {
-            key[KEY_1] = 1;
+            player_start_pressed(0);
         }
         if (exitButtonPressed)
         {

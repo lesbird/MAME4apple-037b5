@@ -139,7 +139,8 @@ GameScene *myObjectSelf;
 -(void)tableView:(UITableView *)tableView didSelectRowAtIndexPath:(NSIndexPath *)indexPath
 {
     int i = (int)indexPath.row;
-    selected_game = gameDriverROMList[i].gameIndex;
+    selected_game = i;
+    NSLog(@"i=%d selected_game=%d name=%s", i, selected_game, gameDriverROMList[i].gameDriver->description);
     runState = 1;
 }
 
@@ -498,7 +499,7 @@ extern const char *getROMpath();
         if (gameDriverList[i].hasRom)
         {
             gameDriverROMList[n].gameDriver = gameDriverList[i].gameDriver;
-            gameDriverROMList[n].gameIndex = i;
+            gameDriverROMList[n].gameIndex = gameDriverList[i].gameIndex;
             gameDriverROMList[n].hasRom = TRUE;
             n++;
         }
@@ -919,21 +920,40 @@ CGPoint CGPointClamp(CGPoint p, float range)
 
 void OnScreenButtonsEnable(BOOL on)
 {
-    [myObjectSelf handleOnscreenButtonsEnable:on];
+    if (on)
+    {
+        [myObjectSelf performSelectorOnMainThread:@selector(handleOnscreenButtonsOn) withObject:nil waitUntilDone:YES];
+    }
+    else
+    {
+        [myObjectSelf performSelectorOnMainThread:@selector(handleOnscreenButtonsOff) withObject:nil waitUntilDone:YES];
+    }
+}
+
+-(void)handleOnscreenButtonsOn
+{
+    [self handleOnscreenButtonsEnable:YES];
+}
+
+-(void)handleOnscreenButtonsOff
+{
+    [self handleOnscreenButtonsEnable:NO];
 }
 
 -(void)handleOnscreenButtonsEnable:(BOOL)on
 {
 #if USE_TOUCH_CONTROLS
-    if (buttonCoin.hidden == on)
+    BOOL hidden = (on ? NO : YES);
+    //if ([buttonCoin isHidden] != hidden)
     {
-        buttonCoin.hidden = (on ? NO : YES);
-        buttonStart.hidden = (on ? NO : YES);
-        buttonExit.hidden = (on ? NO : YES);
-        buttonAction1.hidden = (on ? NO : YES);
-        buttonAction2.hidden = (on ? NO : YES);
-        buttonAction3.hidden = (on ? NO : YES);
-        buttonAction4.hidden = (on ? NO : YES);
+        NSLog(@"handleOnscreenButtonsEnable:%d", on);
+        [buttonCoin setHidden:hidden];
+        [buttonStart setHidden:hidden];
+        [buttonExit setHidden:hidden];
+        [buttonAction1 setHidden:hidden];
+        [buttonAction2 setHidden:hidden];
+        [buttonAction3 setHidden:hidden];
+        [buttonAction4 setHidden:hidden];
     }
 #endif
 }
@@ -1010,7 +1030,7 @@ CGPoint startTouchPos;
     if (!buttonPress)
     {
         selected_game += count;
-        selected_game = (selected_game >= gameDriverCount) ? gameDriverCount - 1 : selected_game;
+        selected_game = (selected_game >= gameDriverROMCount) ? gameDriverROMCount - 1 : selected_game;
         return YES;
     }
     return NO;
@@ -1036,17 +1056,17 @@ CGPoint startTouchPos;
     char c = 0;
     if (sortMethod == 0)
     {
-        c = gameDriverList[selected_game].gameDriver->description[0];
+        c = gameDriverROMList[selected_game].gameDriver->description[0];
     }
     else
     {
-        c = gameDriverList[selected_game].gameDriver->manufacturer[0];
+        c = gameDriverROMList[selected_game].gameDriver->manufacturer[0];
     }
-    for (int i = selected_game; i < gameDriverCount; i++)
+    for (int i = selected_game; i < gameDriverROMCount; i++)
     {
         if (sortMethod == 0)
         {
-            if (gameDriverList[i].gameDriver->description[0] != c)
+            if (gameDriverROMList[i].gameDriver->description[0] != c)
             {
                 //NSLog(@"jumping from %c to %c", c, gameDriverList[i].gameDriver->description[0]);
                 selected_game = i;
@@ -1055,7 +1075,7 @@ CGPoint startTouchPos;
         }
         else
         {
-            if (gameDriverList[i].gameDriver->manufacturer[0] != c)
+            if (gameDriverROMList[i].gameDriver->manufacturer[0] != c)
             {
                 //NSLog(@"jumping from %c to %c", c, gameDriverList[i].gameDriver->description[0]);
                 selected_game = i;
@@ -1076,17 +1096,17 @@ CGPoint startTouchPos;
     char c = 0;
     if (sortMethod == 0)
     {
-        c = gameDriverList[selected_game].gameDriver->description[0];
+        c = gameDriverROMList[selected_game].gameDriver->description[0];
     }
     else
     {
-        c = gameDriverList[selected_game].gameDriver->manufacturer[0];
+        c = gameDriverROMList[selected_game].gameDriver->manufacturer[0];
     }
     for (int i = selected_game; i >= 0; i--)
     {
         if (sortMethod == 0)
         {
-            if (gameDriverList[i].gameDriver->description[0] != c)
+            if (gameDriverROMList[i].gameDriver->description[0] != c)
             {
                 //NSLog(@"jumping from %c to %c", c, gameDriverList[i].gameDriver->description[0]);
                 selected_game = i;
@@ -1095,7 +1115,7 @@ CGPoint startTouchPos;
         }
         else
         {
-            if (gameDriverList[i].gameDriver->manufacturer[0] != c)
+            if (gameDriverROMList[i].gameDriver->manufacturer[0] != c)
             {
                 //NSLog(@"jumping from %c to %c", c, gameDriverList[i].gameDriver->description[0]);
                 selected_game = i;
@@ -1151,9 +1171,9 @@ CGPoint startTouchPos;
         {
             [gameDriverTableView setHidden:YES];
         }
-        [self handleOnscreenButtonsEnable:YES];
+        //[self handleOnscreenButtonsEnable:YES];
         
-        game_index = gameDriverList[selected_game].gameIndex;
+        game_index = gameDriverROMList[selected_game].gameIndex;
         [NSThread detachNewThreadSelector:@selector(runGameThread) toTarget:self withObject:nil];
         runState = 2;
     }
@@ -1207,6 +1227,10 @@ CGPoint startTouchPos;
             GCController *controller = (GCController *)[controllerList objectAtIndex:i];
             if (controller != nil)
             {
+                if (controller.playerIndex != i)
+                {
+                    controller.playerIndex = i;
+                }
                 if (controller.gamepad.dpad.down.pressed)
                 {
                     if (controller.gamepad.rightShoulder.pressed)
@@ -1322,6 +1346,8 @@ CGPoint startTouchPos;
         NSInteger numRows = [self tableView:gameDriverTableView numberOfRowsInSection:0];
         if (indexPath.section == 0 && indexPath.row < numRows) {
             [gameDriverTableView selectRowAtIndexPath:indexPath animated:YES scrollPosition:UITableViewScrollPositionMiddle];
+            int i = (int)indexPath.row;
+            NSLog(@"indexRow=%d selectedGame=%d gameIndex=%d name=%s", i, selected_game, gameDriverROMList[i].gameIndex, gameDriverROMList[i].gameDriver->description);
         }
 #else
         [self updateGameList];
