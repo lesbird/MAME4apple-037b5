@@ -595,6 +595,7 @@ extern const char *getROMpath();
 // iCade support
 CGPoint iCadeStickCenter;
 BOOL iCadeButtonState[ICADEBUTTON_MAX];
+BOOL iCadeDetected;
 
 - (void)setState:(BOOL)state forButton:(iCadeState)button
 {
@@ -660,6 +661,7 @@ BOOL iCadeButtonState[ICADEBUTTON_MAX];
             break;
     }
     iCadeStickCenter = center;
+    iCadeDetected = TRUE;
     
     //NSLog(@"setState state=%d button=%d", state, button);
 }
@@ -918,6 +920,8 @@ CGPoint CGPointClamp(CGPoint p, float range)
 #endif
 }
 
+extern BOOL buttonState;
+
 void OnScreenButtonsEnable(BOOL on)
 {
     if (on)
@@ -944,7 +948,6 @@ void OnScreenButtonsEnable(BOOL on)
 {
 #if USE_TOUCH_CONTROLS
     BOOL hidden = (on ? NO : YES);
-    //if ([buttonCoin isHidden] != hidden)
     {
         NSLog(@"handleOnscreenButtonsEnable:%d", on);
         [buttonCoin setHidden:hidden];
@@ -955,6 +958,7 @@ void OnScreenButtonsEnable(BOOL on)
         [buttonAction3 setHidden:hidden];
         [buttonAction4 setHidden:hidden];
     }
+    buttonState = on;
 #endif
 }
 
@@ -1171,7 +1175,6 @@ CGPoint startTouchPos;
         {
             [gameDriverTableView setHidden:YES];
         }
-        //[self handleOnscreenButtonsEnable:YES];
         
         game_index = gameDriverROMList[selected_game].gameIndex;
         [NSThread detachNewThreadSelector:@selector(runGameThread) toTarget:self withObject:nil];

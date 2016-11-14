@@ -334,6 +334,7 @@ void player_start_pressed(int playerNum)
 }
 
 BOOL buttonState = FALSE;
+extern BOOL iCadeDetected; // this is handled in GameScene.m
 
 void update_key_array()
 {
@@ -341,15 +342,17 @@ void update_key_array()
     {
         key[i] = 0;
     }
+    
+    BOOL mfiDetected = FALSE;
     NSArray *controllerList = [GCController controllers];
     if (controllerList != nil && controllerList.count > 0)
     {
         int playerNum = 0;
         if (buttonState != FALSE)
         {
-            buttonState = FALSE;
-            OnScreenButtonsEnable(buttonState);
+            OnScreenButtonsEnable(FALSE);
         }
+        mfiDetected = TRUE;
         for (int i = 0; i < controllerList.count; i++)
         {
             GCController *controller = (GCController *)[controllerList objectAtIndex:i];
@@ -433,14 +436,6 @@ void update_key_array()
                 }
                 playerNum++;
             }
-        }
-    }
-    else
-    {
-        if (buttonState != TRUE)
-        {
-            buttonState = TRUE;
-            OnScreenButtonsEnable(buttonState);
         }
     }
 
@@ -542,6 +537,15 @@ void update_key_array()
         if (exitButtonPressed)
         {
             key[KEY_ESC] = 1;
+        }
+    }
+    
+    if (!mfiDetected && !iCadeDetected)
+    {
+        // turn on the onscreen buttons if no mfi or iCade detected
+        if (buttonState != TRUE)
+        {
+            OnScreenButtonsEnable(TRUE);
         }
     }
 }
