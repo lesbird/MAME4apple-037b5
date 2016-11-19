@@ -61,7 +61,7 @@ int osd_start_audio_stream(int stereo)
     
     samplesPerFrame = Machine->sample_rate / Machine->drv->frames_per_second;
 
-    NSLog(@"## AudioQueue set up ##");
+    NSLog(@"## AudioQueue set up - sample rate %d ##", samplesPerFrame);
     audioState.mDataFormat.mBitsPerChannel = 16;
     audioState.mDataFormat.mBytesPerFrame = (stereo ? 4 : 2);
     audioState.mDataFormat.mBytesPerPacket = audioState.mDataFormat.mBytesPerFrame;
