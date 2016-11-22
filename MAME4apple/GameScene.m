@@ -1403,21 +1403,29 @@ CGPoint startTouchPos;
             continue;
         }
         int n = selected_game + i - center;
-        struct GameDriver *game_driver = gameDriverROMList[n].gameDriver;
-        gameList[i].text = [NSString stringWithFormat:@"%s", game_driver->description];
-        if ((game_driver->flags & (GAME_NOT_WORKING | NOT_A_DRIVER)) != 0)
+        if (n < gameDriverROMCount)
         {
-            gameList[i].fontColor = [UIColor redColor];
-        }
-        else if (i == center)
-        {
-            gameList[i].fontColor = [UIColor whiteColor];
+            struct GameDriver *game_driver = gameDriverROMList[n].gameDriver;
+            gameList[i].text = [NSString stringWithFormat:@"%s", game_driver->description];
+            if ((game_driver->flags & (GAME_NOT_WORKING | NOT_A_DRIVER)) != 0)
+            {
+                gameList[i].fontColor = [UIColor redColor];
+            }
+            else if (i == center)
+            {
+                gameList[i].fontColor = [UIColor whiteColor];
+            }
+            else
+            {
+                gameList[i].fontColor = [UIColor grayColor];
+            }
+            gameListDesc[i].text = [NSString stringWithFormat:@"%s %s", game_driver->year, game_driver->manufacturer];
         }
         else
         {
-            gameList[i].fontColor = [UIColor grayColor];
+            gameList[i].text = @"";
+            gameListDesc[i].text = @"";
         }
-        gameListDesc[i].text = [NSString stringWithFormat:@"%s %s", game_driver->year, game_driver->manufacturer];
         gameListDesc[i].fontColor = [UIColor yellowColor];
     }
     

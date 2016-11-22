@@ -200,11 +200,11 @@ const struct KeyboardInfo *osd_get_key_list(void)
 // button4 = KEYCODE_LSHIFT
 // player 2:
 // up = KEYCODE_R
-// down = KEYCODE_F
-// left = KEYCODE_D
+// down = KEYCODE_M
+// left = KEYCODE_H
 // right = KEYCODE_G
 // button1 = KEYCODE_A
-// button2 = KEYCODE_S
+// button2 = KEYCODE_T
 // button3 = KEYCODE_Q
 // button4 = KEYCODE_W
 //
@@ -213,7 +213,7 @@ void button_up_pressed(int playerNum)
     if (playerNum == 0)
     {
         key[KEY_UP] = 1;
-        //key[KEY_E] = 1; // UI control
+        key[KEY_E] = 1; // left stick up
     }
     else if (playerNum == 1)
     {
@@ -226,7 +226,7 @@ void button_right_pressed(int playerNum)
     if (playerNum == 0)
     {
         key[KEY_RIGHT] = 1;
-        //key[KEY_F] = 1; // UI control
+        key[KEY_F] = 1; // left stick right
     }
     else if (playerNum == 1)
     {
@@ -239,11 +239,11 @@ void button_down_pressed(int playerNum)
     if (playerNum == 0)
     {
         key[KEY_DOWN] = 1;
-        //key[KEY_D] = 1;
+        key[KEY_D] = 1; // left stick down
     }
     else if (playerNum == 1)
     {
-        key[KEY_F] = 1;
+        key[KEY_M] = 1;
     }
 }
 
@@ -252,11 +252,11 @@ void button_left_pressed(int playerNum)
     if (playerNum == 0)
     {
         key[KEY_LEFT] = 1;
-        //key[KEY_S] = 1;
+        key[KEY_S] = 1; // left stick left
     }
     else if (playerNum == 1)
     {
-        key[KEY_D] = 1;
+        key[KEY_H] = 1;
     }
 }
 
@@ -281,7 +281,7 @@ void button_2_pressed(int playerNum)
     }
     else if (playerNum == 1)
     {
-        key[KEY_S] = 1;
+        key[KEY_T] = 1;
     }
 }
 
@@ -694,17 +694,26 @@ void osd_analogjoy_read(int player,int *analog_x, int *analog_y)
         NSArray *controllerList = [GCController controllers];
         if (controllerList.count > 0)
         {
+            int n = 0;
             for (int i = 0; i < controllerList.count; i++)
             {
                 GCController *controller = (GCController *)[controllerList objectAtIndex:i];
                 if (controller != nil)
                 {
-                    int playerId = i;
-                    joyAnalogLeftX[playerId] = (int)(controller.extendedGamepad.leftThumbstick.xAxis.value * 128);
-                    joyAnalogLeftY[playerId] = (int)(controller.extendedGamepad.leftThumbstick.yAxis.value * 128);
-                    joyAnalogRightX[playerId] = (int)(controller.extendedGamepad.rightThumbstick.xAxis.value * 128);
-                    joyAnalogRightY[playerId] = (int)(controller.extendedGamepad.rightThumbstick.yAxis.value * 128);
-                    //NSLog(@"joyAnalog left=%d,%d right=%d,%d", joyAnalogLeftX[0], joyAnalogLeftY[0], joyAnalogRightX[0], joyAnalogRightY[0]);
+                    if (controller.extendedGamepad != nil)
+                    {
+                        int playerId = n++;
+                        float x0 = controller.extendedGamepad.leftThumbstick.xAxis.value;
+                        float y0 = controller.extendedGamepad.leftThumbstick.yAxis.value;
+                        float x1 = controller.extendedGamepad.rightThumbstick.xAxis.value;
+                        float y1 = controller.extendedGamepad.rightThumbstick.yAxis.value;
+                        joyAnalogLeftX[playerId] = (int)(x0 * 128.0f);
+                        joyAnalogLeftY[playerId] = (int)(y0 * 128.0f);
+                        joyAnalogRightX[playerId] = (int)(x1 * 128.0f);
+                        joyAnalogRightY[playerId] = (int)(y1 * 128.0f);
+                        //NSLog(@"joyAnalog left=%d,%d right=%d,%d", joyAnalogLeftX[0], joyAnalogLeftY[0], joyAnalogRightX[0], joyAnalogRightY[0]);
+                        //NSLog(@"joyAnalog left=%f,%f right=%f,%f", x0, y0, x1, y1);
+                    }
                 }
             }
         }
