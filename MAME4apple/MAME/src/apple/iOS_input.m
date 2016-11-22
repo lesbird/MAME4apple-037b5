@@ -358,10 +358,6 @@ void update_key_array()
             GCController *controller = (GCController *)[controllerList objectAtIndex:i];
             if (controller != nil)
             {
-                //if (controller.microGamepad != nil)
-                //{
-                //    continue; // skip the siri remote
-                //}
                 if (controller.gamepad != nil)
                 {
                     if (controller.gamepad.buttonY.pressed) // p1 button 3
@@ -434,7 +430,11 @@ void update_key_array()
                         key[KEY_F11] = 1;
                     }
                 }
-                playerNum++;
+                // this check will skip over the siri remote
+                if (controller.gamepad != nil || controller.extendedGamepad != nil)
+                {
+                    playerNum++;
+                }
             }
         }
     }

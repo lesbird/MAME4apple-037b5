@@ -339,7 +339,6 @@ int list_step = 40; // gap between lines in game list
     gameDriverTableView.sectionFooterHeight = 64;
     gameDriverTableView.delegate = self;
     gameDriverTableView.dataSource = self;
-    //[gameDriverTableView reloadData];
     [self.view addSubview:gameDriverTableView];
 #else
     int height = view.bounds.size.height;
@@ -371,7 +370,6 @@ int list_step = 40; // gap between lines in game list
     }
     
     [self computeFrameBufferScale:width height:height];
-    [self updateGameList];
 #endif
     
     [self initFrameBuffer];
@@ -421,6 +419,8 @@ int list_step = 40; // gap between lines in game list
     
 #if USE_TABLEVIEW
     [gameDriverTableView reloadData];
+#else
+    [self updateGameList];
 #endif
     
     myObjectSelf = self;
@@ -1403,7 +1403,7 @@ CGPoint startTouchPos;
             continue;
         }
         int n = selected_game + i - center;
-        struct GameDriver *game_driver = gameDriverList[n].gameDriver;
+        struct GameDriver *game_driver = gameDriverROMList[n].gameDriver;
         gameList[i].text = [NSString stringWithFormat:@"%s", game_driver->description];
         if ((game_driver->flags & (GAME_NOT_WORKING | NOT_A_DRIVER)) != 0)
         {
