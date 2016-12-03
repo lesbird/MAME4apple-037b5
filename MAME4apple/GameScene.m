@@ -96,7 +96,7 @@ double prevTime;
 NSUInteger touchTapCount;
 
 // front end vars
-int selected_game;
+int selected_game = -1;
 BOOL buttonPress;
 SKLabelNode *gameCountLabel;
 
@@ -173,6 +173,11 @@ GameScene *myObjectSelf;
 {
     //NSLog(@"section index=%ld %@", (long)index, (NSString *)sectionIndexArray[index]);
     [self jumpToSection:sectionIndexArray[index]];
+    
+    if (selected_game < 0) {
+        return 0;
+    }
+    
     NSIndexPath *indexPath = [NSIndexPath indexPathForRow:selected_game inSection:0];
     [gameDriverTableView selectRowAtIndexPath:indexPath animated:YES scrollPosition:UITableViewScrollPositionMiddle];
     return selected_game;
