@@ -829,6 +829,7 @@ static void update_screen(struct osd_bitmap *bitmap)
 	/* 16-bit refresh case */
 	if (bitmap->depth == 16)
 	{
+#if 0
 		/* loop over rows */
 		for (v = Machine->visible_area.min_y; v <= Machine->visible_area.max_y; v++)
 		{
@@ -844,9 +845,25 @@ static void update_screen(struct osd_bitmap *bitmap)
 			/* point to the next row */
 			offset = (offset + 512) & 0x3ffff;
 		}
-	}
-
-	/* 8-bit refresh case */
+#endif
+        /* loop over rows */
+        for (v = Machine->visible_area.min_y; v <= Machine->visible_area.max_y; v++)
+        {
+            /* handle the refresh */
+            UINT16 *src = &local_videoram[offset];
+            UINT16 *dst = &((UINT16 *)bitmap->line[v])[xoffs];
+            
+            for (h = 0; h < width; h++)
+            {
+                *dst++ = pens[*src++];
+            }
+            
+            /* point to the next row */
+            offset = (offset + 512) & 0x3ffff;
+        }
+    }
+    
+    /* 8-bit refresh case */
 	else
 	{
 		/* loop over rows */

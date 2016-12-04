@@ -10,16 +10,18 @@
 #include "vidhrdw/vector.h"
 
 extern bitmap_t *screen;
+extern UINT32 gameScreenWidth;
+extern UINT32 gameScreenHeight;
 
 // funtion to blit the mame screen to a mutable texture buffer which is a 32 bit osd_bitmap
 void ios_blit(struct osd_bitmap *bitmap)
 {
     struct osd_bitmap *dstbitmap = screen->bitmap;
     
-    long xoffset = (dstbitmap->width / 2) - (bitmap->width / 2);
+    long xoffset = (dstbitmap->width / 2) - (gameScreenWidth / 2); // (bitmap->width / 2);
     long yoffset = (dstbitmap->height / 2) - (bitmap->height / 2);
     
-    long srcw = bitmap->line[1] - bitmap->line[0];
+    long srcw = bitmap->width * (bitmap->depth == 8 ? 1 : bitmap->depth == 32 ? 4 : 2); // bitmap->line[1] - bitmap->line[0];
     long srch = bitmap->height;
     for (int i = 0; i < srch; i++)
     {
@@ -47,10 +49,10 @@ void ios_blit(struct osd_bitmap *bitmap)
                 a = 0xFF;
                 osd_get_pen(c, &r, &g, &b);
                 
-                d[n + 0] = (UINT8)r;
-                d[n + 1] = (UINT8)g;
-                d[n + 2] = (UINT8)b;
-                d[n + 3] = (UINT8)a;
+                d[n + 0] = r;
+                d[n + 1] = g;
+                d[n + 2] = b;
+                d[n + 3] = a;
             }
             else
             {

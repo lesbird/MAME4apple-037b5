@@ -24,7 +24,7 @@
 #endif
 #define USE_RENDERTHREAD 0
 
-#define VERSION_STRING "V1.1"
+#define VERSION_STRING "V1.2"
 
 extern void parse_cmdline(int argc, char **argv, int game_index, char *override_default_rompath);
 
@@ -743,10 +743,12 @@ UINT32 gameScreenHeight;
 // allocate a frame buffer for the emulated game
 -(void)alloc_frame_buffer:(int)width :(int)height :(int)depth :(int)attributes :(int)orientation
 {
+    NSLog(@"alloc_frame_buffer width=%d height=%d", width, height);
+    
     gameScreenWidth = width;
     gameScreenHeight = height;
     
-    [self computeFrameBufferScale:gameScreenWidth height:gameScreenHeight];
+    [self computeFrameBufferScale:Machine->scrbitmap->width height:Machine->scrbitmap->height];
     
     // run the render loop in another thread (experimental and not needed)
     //[NSThread detachNewThreadSelector:@selector(renderLoop) toTarget:self withObject:nil];
