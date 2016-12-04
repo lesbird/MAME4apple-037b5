@@ -279,9 +279,14 @@ int osd_allocate_colors(unsigned int totalcolors, const UINT8 *palette, UINT16 *
         
         for (int i = 0; i < totalcolors; i++)
         {
-            current_palette[3 * pens[i] + 0] = palette[3 * i];
-            current_palette[3 * pens[i] + 1] = palette[3 * i + 1];
-            current_palette[3 * pens[i] + 2] = palette[3 * i + 2];
+            UINT32 p = pens[i];
+            UINT8 r = palette[3 * i + 0];
+            UINT8 g = palette[3 * i + 1];
+            UINT8 b = palette[3 * i + 2];
+            current_palette[3 * p + 0] = r;
+            current_palette[3 * p + 1] = g;
+            current_palette[3 * p + 2] = b;
+            //NSLog(@"palette[%d] current_palette[%d] r=%02X g=%02X b=%02X", i, p, r, g, b);
         }
     }
 
@@ -290,8 +295,10 @@ int osd_allocate_colors(unsigned int totalcolors, const UINT8 *palette, UINT16 *
 
 void osd_modify_pen(int pen,unsigned char red, unsigned char green, unsigned char blue)
 {
+    //NSLog(@"osd_modify_pen(%d)", pen);
     if (current_palette[3 * pen + 0] != red || current_palette[3 * pen + 1] != green || current_palette[3 * pen + 2] != blue)
     {
+        //NSLog(@"osd_modify_pen(%d, red=%02X, green=%02X, blue=%02X", pen, red, green, blue);
         current_palette[3 * pen + 0] = red;
         current_palette[3 * pen + 1] = green;
         current_palette[3 * pen + 2] = blue;
@@ -300,18 +307,9 @@ void osd_modify_pen(int pen,unsigned char red, unsigned char green, unsigned cha
 
 void osd_get_pen(int pen,unsigned char *red, unsigned char *green, unsigned char *blue)
 {
-    if (gfx_depth != 8)
-    {
-        *red =   getr(pen);
-        *green = getg(pen);
-        *blue =  getb(pen);
-    }
-    else
-    {
-        *red =	 current_palette[3 * pen + 0];
-        *green = current_palette[3 * pen + 1];
-        *blue =  current_palette[3 * pen + 2];
-    }
+    *red =	 current_palette[3 * pen + 0];
+    *green = current_palette[3 * pen + 1];
+    *blue =  current_palette[3 * pen + 2];
 }
 
 int osd_skip_this_frame(void)
