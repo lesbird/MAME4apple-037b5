@@ -748,7 +748,7 @@ UINT32 gameScreenHeight;
     gameScreenWidth = width;
     gameScreenHeight = height;
     
-    [self computeFrameBufferScale:Machine->scrbitmap->width height:Machine->scrbitmap->height];
+    [self computeFrameBufferScale:gameScreenWidth height:gameScreenHeight];
     
     // run the render loop in another thread (experimental and not needed)
     //[NSThread detachNewThreadSelector:@selector(renderLoop) toTarget:self withObject:nil];
@@ -791,6 +791,12 @@ void fillBufferData(UINT32 *buf, int width, int height)
     
     UINT32 w = width;
     UINT32 h = height;
+    
+    NSLog(@"computeFrameBufferScale w=%d h=%d sizex=%d sizey=%d minx=%d miny=%d maxx=%d maxy=%d", w, h,
+          Machine->scrbitmap->width, Machine->scrbitmap->height,
+          Machine->drv->default_visible_area.min_x, Machine->drv->default_visible_area.min_y,
+          Machine->drv->default_visible_area.max_x, Machine->drv->default_visible_area.max_y);
+    
     if (Machine != nil && Machine->drv != nil)
     {
         // handle oddball aspect ratios like Blasteroids

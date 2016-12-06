@@ -18,10 +18,19 @@ void ios_blit(struct osd_bitmap *bitmap)
 {
     struct osd_bitmap *dstbitmap = screen->bitmap;
     
-    long xoffset = (dstbitmap->width / 2) - (gameScreenWidth / 2); // (bitmap->width / 2);
-    long yoffset = (dstbitmap->height / 2) - (bitmap->height / 2);
+    long depthBytes = (bitmap->depth == 8) ? 1 : (bitmap->depth == 32) ? 4 : 2;
+    long xoffset = (dstbitmap->width / 2) - (gameScreenWidth / 2);
+    long yoffset = (dstbitmap->height / 2) - (gameScreenHeight / 2);
     
-    long srcw = bitmap->width * (bitmap->depth == 8 ? 1 : bitmap->depth == 32 ? 4 : 2); // bitmap->line[1] - bitmap->line[0];
+    if ((Machine->drv->video_attributes & VIDEO_TYPE_VECTOR) == 0)
+    {
+        xoffset -= Machine->drv->default_visible_area.min_x;
+        yoffset -= Machine->drv->default_visible_area.min_y;
+    }
+    
+    //NSLog(@"xoffset=%ld yoffset=%ld", xoffset, yoffset);
+    
+    long srcw = bitmap->width * depthBytes; // bitmap->line[1] - bitmap->line[0];
     long srch = bitmap->height;
     for (int i = 0; i < srch; i++)
     {
