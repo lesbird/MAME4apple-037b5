@@ -482,8 +482,12 @@ void adsp2100_reset(void *param)
 {
 	/* ensure that zero is zero */
 	adsp2100.r[0].zero.u = adsp2100.r[1].zero.u = 0;
-
-	/* recompute the memory registers with their current values */
+    
+    /* create the tables */
+    if (!create_tables())
+        exit(-1);
+    
+    /* recompute the memory registers with their current values */
 	wr_l0(adsp2100.l[0]);  wr_i0(adsp2100.i[0]);
 	wr_l1(adsp2100.l[1]);  wr_i1(adsp2100.i[1]);
 	wr_l2(adsp2100.l[2]);  wr_i2(adsp2100.i[2]);
@@ -548,8 +552,8 @@ void adsp2100_reset(void *param)
 	adsp2100.interrupt_cycles = 0;
 
 	/* create the tables */
-	if (!create_tables())
-		exit(-1);
+	//if (!create_tables())
+	//	exit(-1);
 }
 
 
