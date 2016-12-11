@@ -889,7 +889,7 @@ static char *get_iOS_directory(const char *folder_name)
 
 void parse_cmdline (int argc, char **argv, int game_index, char *override_default_rompath)
 {
-    options.use_artwork = get_bool("config", "artwork", NULL, 1);
+    options.use_artwork = get_bool("config", "artwork", NULL, 0);
     options.use_samples = get_bool("config", "samples", NULL, 1);
     //options.antialias = get_bool("config", "antialias", NULL, 1);
     //options.translucency = get_bool("config", "translucency", NULL, 1);

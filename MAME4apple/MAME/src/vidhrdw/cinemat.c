@@ -143,6 +143,8 @@ void cinemat_init_colors (unsigned char *palette, unsigned short *colortable,con
 			/* Attempt to load overlay if requested */
 			if (cinemat_overlay_req)
 			{
+                int use_artwork = options.use_artwork; // LB
+                options.use_artwork = 1; // LB - force overlay artwork for cinematronics games
 				if (cinemat_simple_overlay != NULL)
 				{
 					/* use simple overlay */
@@ -160,6 +162,7 @@ void cinemat_init_colors (unsigned char *palette, unsigned short *colortable,con
 
 				if ((Machine->scrbitmap->depth == 8) || (artwork_backdrop == 0))
 					overlay_set_palette (palette, (Machine->drv->total_colors > 256 ? 256 : Machine->drv->total_colors) - nextcol);
+                options.use_artwork = use_artwork; // LB - fix for crash when turning off backdrops but needed for cinematronics overlays
 			}
 			break;
 
