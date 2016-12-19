@@ -384,7 +384,7 @@ int list_step = 40; // gap between lines in game list
 #else
     gameCountLabel = [SKLabelNode labelNodeWithText:@""];
     gameCountLabel.name = @"gamecountlabel";
-    gameCountLabel.position = CGPointMake(-(width / 2) + 16, -(height / 2) + 0);
+    gameCountLabel.position = CGPointMake(-(width / 2) + 48, -(height / 2) + 32);
     gameCountLabel.horizontalAlignmentMode = SKLabelHorizontalAlignmentModeLeft;
     gameCountLabel.fontName = @"Courier-Bold";
     gameCountLabel.fontSize = 16;
@@ -392,7 +392,7 @@ int list_step = 40; // gap between lines in game list
     
     versionLabel = [SKLabelNode labelNodeWithText:[NSString stringWithFormat:@"MAME4apple %s 2016 by Les Bird (www.lesbird.com)", VERSION_STRING]];
     versionLabel.name = @"versionlabel";
-    versionLabel.position = CGPointMake(0, -(height / 2) + 16);
+    versionLabel.position = CGPointMake(0, -(height / 2) + 32);
     versionLabel.fontName = @"Courier-Bold";
     versionLabel.fontSize = 20;
     [gameListNode addChild:versionLabel];
@@ -428,7 +428,20 @@ int list_step = 40; // gap between lines in game list
     [self updateGameList];
 #endif
     
+    //[self initInfoButton];
+    
     myObjectSelf = self;
+}
+
+-(void)initInfoButton
+{
+    //UIButton *infoButton = [UIButton buttonWithType:UIButtonTypeInfoLight];
+    //CGRect buttonRect = infoButton.frame;
+    //buttonRect.origin.x = buttonRect.size.width;
+    //buttonRect.origin.y = buttonRect.size.height - 12;
+    //[infoButton setFrame:buttonRect];
+    
+    //[self.view addSubview:infoButton];
 }
 
 -(void)initAndSortDriverArray
@@ -876,8 +889,8 @@ void fillBufferData(UINT32 *buf, int width, int height)
 #endif
     
 #if !USE_TABLEVIEW
-    gameCountLabel.position = CGPointMake(-x + 16, -y + 16);
-    versionLabel.position = CGPointMake(0, -y + 16);
+    gameCountLabel.position = CGPointMake(-x + 48, -y + 32);
+    versionLabel.position = CGPointMake(0, -y + 32);
 #endif
 }
 
