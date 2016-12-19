@@ -1418,8 +1418,9 @@ CGPoint startTouchPos;
 -(void)updateGameList
 {
 #if !USE_TABLEVIEW
+    int o = selected_game;
     int center = gameListCount / 2;
-    int top = center - selected_game;
+    int top = center - o;
     for (int i = 0; i < gameListCount; i++)
     {
         if (i < top)
@@ -1428,7 +1429,7 @@ CGPoint startTouchPos;
             gameListDesc[i].text = @"";
             continue;
         }
-        int n = selected_game + i - center;
+        int n = o + i - center;
         if (n < gameDriverROMCount)
         {
             struct GameDriver *game_driver = gameDriverROMList[n].gameDriver;
@@ -1443,7 +1444,7 @@ CGPoint startTouchPos;
             }
             else
             {
-                gameList[i].fontColor = [UIColor grayColor];
+                gameList[i].fontColor = [UIColor brownColor];
             }
             gameListDesc[i].text = [NSString stringWithFormat:@"%s %s", game_driver->year, game_driver->manufacturer];
         }
