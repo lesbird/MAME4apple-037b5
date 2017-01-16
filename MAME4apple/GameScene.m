@@ -729,14 +729,36 @@ SKSpriteNode *testSpriteNode2;
 UINT32 gameScreenWidth;
 UINT32 gameScreenHeight;
 
+#define TRIPLE_BUFFER 0
+#if TRIPLE_BUFFER
+// try a triple buffer approach - result did not work as expected
+#define NUM_FRAMEBUFFERS 3
+bitmap_t *frameBufferArray[NUM_FRAMEBUFFERS] = { nil };
+int currentFrameIndex = 0;
+int renderFrameIndex = 0;
+#endif
+
 -(void)initFrameBuffer
 {
     UINT32 bufferWidth = 1024;
     UINT32 bufferHeight = 1024;
     
+#if TRIPLE_BUFFER
+    NSLog(@"using triple buffer");
+    for (int i = 0; i < NUM_FRAMEBUFFERS; i++)
+    {
+        frameBufferArray[i] = (bitmap_t *)malloc(sizeof(bitmap_t));
+        frameBufferArray[i]->bitmap = osd_alloc_bitmap(bufferWidth, bufferHeight, 32);
+    }
+    
+    [self flip];
+    [self renderFlip];
+#else
+    NSLog(@"using single buffer");
     screen = (bitmap_t *)malloc(sizeof(bitmap_t));
     screen->bitmap = osd_alloc_bitmap(bufferWidth, bufferHeight, 32);
     frameBufferData = (UINT32 *)screen->bitmap->_private;
+#endif
     
     long w = screen->bitmap->line[1] - screen->bitmap->line[0];
     long h = bufferHeight;
@@ -751,6 +773,33 @@ UINT32 gameScreenHeight;
     frameBufferNode.name = @"framebuffernode";
     frameBufferNode.position = CGPointMake(0, 32);
     [self addChild:frameBufferNode];
+}
+
+// point to next frame buffer - called from ios_blit
+-(void)flip
+{
+#if TRIPLE_BUFFER
+    screen = frameBufferArray[currentFrameIndex];
+    currentFrameIndex = (currentFrameIndex + 1) % NUM_FRAMEBUFFERS;
+#endif
+}
+
+void objc_flip()
+{
+    if (myObjectSelf != nil)
+    {
+        [myObjectSelf flip];
+    }
+}
+
+// point to next frame buffer - called from update modifyPixelDataWithBlock
+-(void)renderFlip
+{
+#if TRIPLE_BUFFER
+    frameBufferData = (UINT32 *)frameBufferArray[renderFrameIndex]->bitmap->_private;
+    renderFrameIndex = (renderFrameIndex + 1) % NUM_FRAMEBUFFERS;
+#endif
+    game_bitmap_update = 0;
 }
 
 // allocate a frame buffer for the emulated game
@@ -1209,7 +1258,9 @@ CGPoint startTouchPos;
 #if !USE_RENDERTHREAD
     //if (runState == 2) // rendering the frames
     {
+#if !TRIPLE_BUFFER
         if (game_bitmap_update == 1)
+#endif
         {
             if (frameBufferData != nil)
             {
@@ -1217,7 +1268,7 @@ CGPoint startTouchPos;
                 {
                     [frameBuffer modifyPixelDataWithBlock:^(void *pixelData, size_t lengthInBytes) {
                         memcpy(pixelData, frameBufferData, lengthInBytes);
-                        game_bitmap_update = 0;
+                        [self renderFlip];
                     }];
                 }
             }

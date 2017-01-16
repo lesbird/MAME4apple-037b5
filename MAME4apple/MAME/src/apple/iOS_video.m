@@ -323,9 +323,9 @@ TICKER curr;
 
 void vsync()
 {
-    while (game_bitmap_update != 0)
-    {
-    }
+    //while (game_bitmap_update != 0)
+    //{
+    //}
 }
 
 void osd_update_video_and_audio(struct osd_bitmap *game_bitmap)
