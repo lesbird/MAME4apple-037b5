@@ -2122,6 +2122,10 @@
 		21B98E461DBD238600376467 /* roms.bundle in Resources */ = {isa = PBXBuildFile; fileRef = 21B98E451DBD238600376467 /* roms.bundle */; };
 		21FC930F1DAAD37B005EB49B /* 1024x1024.jpg in Resources */ = {isa = PBXBuildFile; fileRef = 21FC930E1DAAD37B005EB49B /* 1024x1024.jpg */; };
 		21FCE46A1DB3CF040057162E /* iCadeReaderView.m in Sources */ = {isa = PBXBuildFile; fileRef = 21FCE4681DB3CF040057162E /* iCadeReaderView.m */; };
+		2D2C851A1DF43F4E00EF9FBE /* HeaderView.m in Sources */ = {isa = PBXBuildFile; fileRef = 2D2C85191DF43F4E00EF9FBE /* HeaderView.m */; };
+		2D2C851C1DF43F6900EF9FBE /* HeaderView.xib in Resources */ = {isa = PBXBuildFile; fileRef = 2D2C851B1DF43F6900EF9FBE /* HeaderView.xib */; };
+		2D2C85231DF4524100EF9FBE /* SearchVC.m in Sources */ = {isa = PBXBuildFile; fileRef = 2D2C85221DF4524100EF9FBE /* SearchVC.m */; };
+		2D2C852C1DF4622F00EF9FBE /* RomDownloadManager.m in Sources */ = {isa = PBXBuildFile; fileRef = 2D2C852B1DF4622F00EF9FBE /* RomDownloadManager.m */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -3515,6 +3519,13 @@
 		21FCE4671DB3CF040057162E /* iCadeReaderView.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = iCadeReaderView.h; sourceTree = "<group>"; };
 		21FCE4681DB3CF040057162E /* iCadeReaderView.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = iCadeReaderView.m; sourceTree = "<group>"; };
 		21FCE4691DB3CF040057162E /* iCadeState.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = iCadeState.h; sourceTree = "<group>"; };
+		2D2C85181DF43F4E00EF9FBE /* HeaderView.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = HeaderView.h; sourceTree = "<group>"; };
+		2D2C85191DF43F4E00EF9FBE /* HeaderView.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = HeaderView.m; sourceTree = "<group>"; };
+		2D2C851B1DF43F6900EF9FBE /* HeaderView.xib */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = file.xib; path = HeaderView.xib; sourceTree = "<group>"; };
+		2D2C85211DF4524100EF9FBE /* SearchVC.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = SearchVC.h; sourceTree = "<group>"; };
+		2D2C85221DF4524100EF9FBE /* SearchVC.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = SearchVC.m; sourceTree = "<group>"; };
+		2D2C852A1DF4622F00EF9FBE /* RomDownloadManager.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = RomDownloadManager.h; sourceTree = "<group>"; };
+		2D2C852B1DF4622F00EF9FBE /* RomDownloadManager.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = RomDownloadManager.m; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -3561,6 +3572,8 @@
 		213B10631DA67C6100DC1F1F /* MAME4apple */ = {
 			isa = PBXGroup;
 			children = (
+				2D2C851E1DF4521800EF9FBE /* Search */,
+				2D2C85171DF43F2500EF9FBE /* Header */,
 				21FCE4661DB3CF040057162E /* iCade */,
 				213B10871DA67D6400DC1F1F /* MAME */,
 				213B10671DA67C6100DC1F1F /* AppDelegate.h */,
@@ -5271,6 +5284,27 @@
 			path = iCade;
 			sourceTree = "<group>";
 		};
+		2D2C85171DF43F2500EF9FBE /* Header */ = {
+			isa = PBXGroup;
+			children = (
+				2D2C85181DF43F4E00EF9FBE /* HeaderView.h */,
+				2D2C85191DF43F4E00EF9FBE /* HeaderView.m */,
+				2D2C851B1DF43F6900EF9FBE /* HeaderView.xib */,
+			);
+			path = Header;
+			sourceTree = "<group>";
+		};
+		2D2C851E1DF4521800EF9FBE /* Search */ = {
+			isa = PBXGroup;
+			children = (
+				2D2C852A1DF4622F00EF9FBE /* RomDownloadManager.h */,
+				2D2C852B1DF4622F00EF9FBE /* RomDownloadManager.m */,
+				2D2C85211DF4524100EF9FBE /* SearchVC.h */,
+				2D2C85221DF4524100EF9FBE /* SearchVC.m */,
+			);
+			path = Search;
+			sourceTree = "<group>";
+		};
 /* End PBXGroup section */
 
 /* Begin PBXNativeTarget section */
@@ -5314,17 +5348,17 @@
 		213B10591DA67C6100DC1F1F /* Project object */ = {
 			isa = PBXProject;
 			attributes = {
-				LastUpgradeCheck = 0800;
+				LastUpgradeCheck = 0810;
 				ORGANIZATIONNAME = "Les Bird";
 				TargetAttributes = {
 					213B10601DA67C6100DC1F1F = {
 						CreatedOnToolsVersion = 8.0;
-						DevelopmentTeam = A75V2S2HM3;
+						DevelopmentTeam = W242LE97PH;
 						ProvisioningStyle = Automatic;
 					};
 					21626B901DB294D9005AA8E6 = {
 						CreatedOnToolsVersion = 8.0;
-						DevelopmentTeam = A75V2S2HM3;
+						DevelopmentTeam = W242LE97PH;
 						ProvisioningStyle = Automatic;
 						SystemCapabilities = {
 							com.apple.Push = {
@@ -5367,6 +5401,7 @@
 				213B107B1DA67C6100DC1F1F /* LaunchScreen.storyboard in Resources */,
 				213B106D1DA67C6100DC1F1F /* Actions.sks in Resources */,
 				21FC930F1DAAD37B005EB49B /* 1024x1024.jpg in Resources */,
+				2D2C851C1DF43F6900EF9FBE /* HeaderView.xib in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -5529,6 +5564,7 @@
 				213B19911DA67D6800DC1F1F /* lsasquad.c in Sources */,
 				213B169C1DA67D6700DC1F1F /* cclimber.c in Sources */,
 				213B17CD1DA67D6700DC1F1F /* vicdual.c in Sources */,
+				2D2C85231DF4524100EF9FBE /* SearchVC.m in Sources */,
 				213B19991DA67D6800DC1F1F /* madmotor.c in Sources */,
 				213B16E81DA67D6700DC1F1F /* gotya.c in Sources */,
 				213B18051DA67D6700DC1F1F /* capbowl.c in Sources */,
@@ -5636,6 +5672,7 @@
 				213B1A571DA67D6900DC1F1F /* zaxxon.c in Sources */,
 				213B17461DA67D6700DC1F1F /* pacland.c in Sources */,
 				213B1A1A1DA67D6900DC1F1F /* taito_f2.c in Sources */,
+				2D2C851A1DF43F4E00EF9FBE /* HeaderView.m in Sources */,
 				213B17101DA67D6700DC1F1F /* locomotn.c in Sources */,
 				213B162D1DA67D6600DC1F1F /* nec.c in Sources */,
 				213B18FF1DA67D6800DC1F1F /* batman.c in Sources */,
@@ -5860,6 +5897,7 @@
 				213B16941DA67D6700DC1F1F /* cabal.c in Sources */,
 				213B19501DA67D6800DC1F1F /* fastlane.c in Sources */,
 				213B16D11DA67D6700DC1F1F /* flkatck.c in Sources */,
+				2D2C852C1DF4622F00EF9FBE /* RomDownloadManager.m in Sources */,
 				213B16A81DA67D6700DC1F1F /* cninja.c in Sources */,
 				213B17831DA67D6700DC1F1F /* sidearms.c in Sources */,
 				213B16A71DA67D6700DC1F1F /* cloud9.c in Sources */,
@@ -7547,6 +7585,7 @@
 				CLANG_WARN_INFINITE_RECURSION = YES;
 				CLANG_WARN_INT_CONVERSION = YES;
 				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN_SUSPICIOUS_MOVE = YES;
 				CLANG_WARN_SUSPICIOUS_MOVES = YES;
 				CLANG_WARN_UNREACHABLE_CODE = YES;
 				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
@@ -7595,6 +7634,7 @@
 				CLANG_WARN_INFINITE_RECURSION = YES;
 				CLANG_WARN_INT_CONVERSION = YES;
 				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN_SUSPICIOUS_MOVE = YES;
 				CLANG_WARN_SUSPICIOUS_MOVES = YES;
 				CLANG_WARN_UNREACHABLE_CODE = YES;
 				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
@@ -7623,7 +7663,7 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
-				DEVELOPMENT_TEAM = A75V2S2HM3;
+				DEVELOPMENT_TEAM = W242LE97PH;
 				GCC_PRECOMPILE_PREFIX_HEADER = YES;
 				GCC_PREFIX_HEADER = MAME4apple/Prefix.pch;
 				HEADER_SEARCH_PATHS = "./MAME4apple/MAME/src/**";
@@ -7643,7 +7683,7 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
-				DEVELOPMENT_TEAM = A75V2S2HM3;
+				DEVELOPMENT_TEAM = W242LE97PH;
 				GCC_PRECOMPILE_PREFIX_HEADER = YES;
 				GCC_PREFIX_HEADER = MAME4apple/Prefix.pch;
 				HEADER_SEARCH_PATHS = "./MAME4apple/MAME/src/**";
@@ -7664,7 +7704,7 @@
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = "App Icon & Top Shelf Image";
 				ASSETCATALOG_COMPILER_LAUNCHIMAGE_NAME = LaunchImage;
-				DEVELOPMENT_TEAM = A75V2S2HM3;
+				DEVELOPMENT_TEAM = W242LE97PH;
 				GCC_PREFIX_HEADER = MAME4apple/Prefix.pch;
 				HEADER_SEARCH_PATHS = "./MAME4apple/MAME/src/**";
 				INFOPLIST_FILE = MAME4appleTV/Info.plist;
@@ -7686,7 +7726,7 @@
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = "App Icon & Top Shelf Image";
 				ASSETCATALOG_COMPILER_LAUNCHIMAGE_NAME = LaunchImage;
-				DEVELOPMENT_TEAM = A75V2S2HM3;
+				DEVELOPMENT_TEAM = W242LE97PH;
 				GCC_PREFIX_HEADER = MAME4apple/Prefix.pch;
 				HEADER_SEARCH_PATHS = "./MAME4apple/MAME/src/**";
 				INFOPLIST_FILE = MAME4appleTV/Info.plist;

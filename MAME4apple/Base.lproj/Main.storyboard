@@ -1,14 +1,23 @@
-<?xml version="1.0" encoding="UTF-8" standalone="no"?>
-<document type="com.apple.InterfaceBuilder3.CocoaTouch.Storyboard.XIB" version="3.0" toolsVersion="11134" systemVersion="15F34" targetRuntime="iOS.CocoaTouch" propertyAccessControl="none" useAutolayout="YES" useTraitCollections="YES" colorMatched="YES" initialViewController="BV1-FR-VrT">
+<?xml version="1.0" encoding="UTF-8"?>
+<document type="com.apple.InterfaceBuilder3.CocoaTouch.Storyboard.XIB" version="3.0" toolsVersion="11542" systemVersion="16B2555" targetRuntime="iOS.CocoaTouch" propertyAccessControl="none" useAutolayout="YES" useTraitCollections="YES" colorMatched="YES" initialViewController="BV1-FR-VrT">
+    <device id="retina4_7" orientation="portrait">
+        <adaptation id="fullscreen"/>
+    </device>
     <dependencies>
-        <plugIn identifier="com.apple.InterfaceBuilder.IBCocoaTouchPlugin" version="11106"/>
+        <deployment identifier="iOS"/>
+        <plugIn identifier="com.apple.InterfaceBuilder.IBCocoaTouchPlugin" version="11524"/>
         <capability name="documents saved in the Xcode 8 format" minToolsVersion="8.0"/>
     </dependencies>
+    <customFonts key="customFonts">
+        <array key="AlNile.ttc">
+            <string>AlNile-Bold</string>
+        </array>
+    </customFonts>
     <scenes>
         <!--Game View Controller-->
         <scene sceneID="tXr-a1-R10">
             <objects>
-                <viewController id="BV1-FR-VrT" customClass="GameViewController" customModuleProvider="" sceneMemberID="viewController">
+                <viewController id="BV1-FR-VrT" customClass="GameViewController" sceneMemberID="viewController">
                     <layoutGuides>
                         <viewControllerLayoutGuide type="top" id="8aa-yV-Osq"/>
                         <viewControllerLayoutGuide type="bottom" id="qHh-Mt-9TT"/>
@@ -18,9 +27,118 @@
                         <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
                         <color key="backgroundColor" red="0.0" green="0.0" blue="0.0" alpha="1" colorSpace="custom" customColorSpace="sRGB"/>
                     </view>
+                    <connections>
+                        <segue destination="czI-Vs-WKd" kind="presentation" identifier="segueSearch" id="RYb-j8-5P9"/>
+                    </connections>
                 </viewController>
                 <placeholder placeholderIdentifier="IBFirstResponder" id="SZV-WD-TEh" sceneMemberID="firstResponder"/>
             </objects>
+            <point key="canvasLocation" x="-212" y="78"/>
+        </scene>
+        <!--SearchVC-->
+        <scene sceneID="ttK-lK-Ey8">
+            <objects>
+                <viewController storyboardIdentifier="SearchVC" id="czI-Vs-WKd" customClass="SearchVC" sceneMemberID="viewController">
+                    <layoutGuides>
+                        <viewControllerLayoutGuide type="top" id="LmM-wt-8gZ"/>
+                        <viewControllerLayoutGuide type="bottom" id="d5c-ey-ZdX"/>
+                    </layoutGuides>
+                    <view key="view" contentMode="scaleToFill" id="c9w-Wu-Kl6">
+                        <rect key="frame" x="0.0" y="0.0" width="375" height="667"/>
+                        <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
+                        <subviews>
+                            <webView contentMode="scaleToFill" translatesAutoresizingMaskIntoConstraints="NO" id="5Na-Aq-OoQ" userLabel="webView">
+                                <rect key="frame" x="0.0" y="45" width="375" height="574"/>
+                                <color key="backgroundColor" red="0.36078431370000003" green="0.38823529410000002" blue="0.4039215686" alpha="1" colorSpace="custom" customColorSpace="sRGB"/>
+                                <connections>
+                                    <outlet property="delegate" destination="czI-Vs-WKd" id="kvm-ds-5ox"/>
+                                </connections>
+                            </webView>
+                            <button opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" buttonType="roundedRect" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="sU5-Dz-seU" userLabel="btnBack">
+                                <rect key="frame" x="10" y="624" width="60" height="38"/>
+                                <constraints>
+                                    <constraint firstAttribute="height" constant="38" id="OSj-oy-uhs"/>
+                                    <constraint firstAttribute="width" constant="60" id="TPz-d3-aTz"/>
+                                </constraints>
+                                <fontDescription key="fontDescription" name="AlNile-Bold" family="Al Nile" pointSize="50"/>
+                                <inset key="contentEdgeInsets" minX="0.0" minY="7" maxX="0.0" maxY="0.0"/>
+                                <state key="normal" title="&lt;">
+                                    <color key="titleColor" red="0.0" green="0.47843137250000001" blue="1" alpha="1" colorSpace="calibratedRGB"/>
+                                </state>
+                                <connections>
+                                    <action selector="actionBack:" destination="czI-Vs-WKd" eventType="touchUpInside" id="JOU-va-vDT"/>
+                                </connections>
+                            </button>
+                            <button opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" buttonType="roundedRect" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="Jjb-Yz-bF9" userLabel="btnForward">
+                                <rect key="frame" x="78" y="624" width="60" height="38"/>
+                                <constraints>
+                                    <constraint firstAttribute="height" constant="38" id="DT4-1b-YM3"/>
+                                    <constraint firstAttribute="width" constant="60" id="qYE-95-M0I"/>
+                                </constraints>
+                                <fontDescription key="fontDescription" name="AlNile-Bold" family="Al Nile" pointSize="50"/>
+                                <inset key="contentEdgeInsets" minX="0.0" minY="6" maxX="0.0" maxY="0.0"/>
+                                <state key="normal" title="&gt;">
+                                    <color key="titleColor" red="0.0" green="0.47843137250000001" blue="1" alpha="1" colorSpace="calibratedRGB"/>
+                                </state>
+                                <connections>
+                                    <action selector="actionForward:" destination="czI-Vs-WKd" eventType="touchUpInside" id="CR0-Kc-l85"/>
+                                </connections>
+                            </button>
+                            <button opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" buttonType="roundedRect" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="K7t-UA-drV" userLabel="btnForward">
+                                <rect key="frame" x="310" y="5" width="60" height="35"/>
+                                <constraints>
+                                    <constraint firstAttribute="width" constant="60" id="VZA-fR-2fr"/>
+                                    <constraint firstAttribute="height" constant="35" id="fCh-13-CRf"/>
+                                </constraints>
+                                <fontDescription key="fontDescription" name="AlNile-Bold" family="Al Nile" pointSize="16"/>
+                                <inset key="contentEdgeInsets" minX="0.0" minY="6" maxX="0.0" maxY="0.0"/>
+                                <state key="normal" title="Done">
+                                    <color key="titleColor" red="0.0" green="0.47843137250000001" blue="1" alpha="1" colorSpace="calibratedRGB"/>
+                                </state>
+                                <connections>
+                                    <action selector="actionClose:" destination="czI-Vs-WKd" eventType="touchUpInside" id="K3d-zN-LzC"/>
+                                    <action selector="actionForward:" destination="czI-Vs-WKd" eventType="touchUpInside" id="fRV-7t-B2K"/>
+                                </connections>
+                            </button>
+                            <textField opaque="NO" clipsSubviews="YES" contentMode="scaleToFill" contentHorizontalAlignment="left" contentVerticalAlignment="center" borderStyle="roundedRect" textAlignment="natural" minimumFontSize="17" translatesAutoresizingMaskIntoConstraints="NO" id="Nzr-X6-6wC" userLabel="tfUrlField">
+                                <rect key="frame" x="5" y="5" width="300" height="35"/>
+                                <constraints>
+                                    <constraint firstAttribute="height" constant="35" id="IrX-W9-dl9"/>
+                                </constraints>
+                                <nil key="textColor"/>
+                                <fontDescription key="fontDescription" type="system" pointSize="14"/>
+                                <textInputTraits key="textInputTraits"/>
+                                <connections>
+                                    <action selector="actionGo:" destination="czI-Vs-WKd" eventType="editingDidEndOnExit" id="tgv-Cw-5TV"/>
+                                </connections>
+                            </textField>
+                        </subviews>
+                        <color key="backgroundColor" red="0.9178068329015544" green="0.9178068329015544" blue="0.9178068329015544" alpha="1" colorSpace="custom" customColorSpace="sRGB"/>
+                        <constraints>
+                            <constraint firstItem="Jjb-Yz-bF9" firstAttribute="top" secondItem="5Na-Aq-OoQ" secondAttribute="bottom" constant="5" id="1V0-JW-YWa"/>
+                            <constraint firstItem="K7t-UA-drV" firstAttribute="leading" secondItem="Nzr-X6-6wC" secondAttribute="trailing" constant="5" id="2sp-Bp-Y4f"/>
+                            <constraint firstItem="5Na-Aq-OoQ" firstAttribute="leading" secondItem="c9w-Wu-Kl6" secondAttribute="leading" id="8Pf-EX-tU4"/>
+                            <constraint firstItem="K7t-UA-drV" firstAttribute="top" secondItem="LmM-wt-8gZ" secondAttribute="bottom" constant="5" id="9kd-Of-I6p"/>
+                            <constraint firstAttribute="trailing" secondItem="K7t-UA-drV" secondAttribute="trailing" constant="5" id="9rn-gd-TbK"/>
+                            <constraint firstItem="5Na-Aq-OoQ" firstAttribute="top" secondItem="Nzr-X6-6wC" secondAttribute="bottom" constant="5" id="CK4-d9-fSN"/>
+                            <constraint firstItem="sU5-Dz-seU" firstAttribute="leading" secondItem="c9w-Wu-Kl6" secondAttribute="leading" constant="10" id="H3r-Yc-uUo"/>
+                            <constraint firstItem="Nzr-X6-6wC" firstAttribute="top" secondItem="LmM-wt-8gZ" secondAttribute="bottom" constant="5" id="RUQ-Yg-Sgf"/>
+                            <constraint firstItem="Jjb-Yz-bF9" firstAttribute="leading" secondItem="sU5-Dz-seU" secondAttribute="trailing" constant="8" id="Y0a-ab-4Cy"/>
+                            <constraint firstItem="d5c-ey-ZdX" firstAttribute="top" secondItem="sU5-Dz-seU" secondAttribute="bottom" constant="5" id="iHE-uU-Kb5"/>
+                            <constraint firstItem="Nzr-X6-6wC" firstAttribute="leading" secondItem="c9w-Wu-Kl6" secondAttribute="leading" constant="5" id="jvq-xu-Wu5"/>
+                            <constraint firstAttribute="trailing" secondItem="5Na-Aq-OoQ" secondAttribute="trailing" id="liO-cy-6qz"/>
+                            <constraint firstItem="d5c-ey-ZdX" firstAttribute="top" secondItem="Jjb-Yz-bF9" secondAttribute="bottom" constant="5" id="wep-TR-VDD"/>
+                        </constraints>
+                    </view>
+                    <nil key="simulatedStatusBarMetrics"/>
+                    <connections>
+                        <outlet property="tfUrlField" destination="Nzr-X6-6wC" id="xbR-mm-rFn"/>
+                        <outlet property="webView" destination="5Na-Aq-OoQ" id="g8Q-Yq-fEd"/>
+                    </connections>
+                </viewController>
+                <placeholder placeholderIdentifier="IBFirstResponder" id="2WR-9Q-8ke" userLabel="First Responder" sceneMemberID="firstResponder"/>
+            </objects>
+            <point key="canvasLocation" x="600.79999999999995" y="77.811094452773617"/>
         </scene>
     </scenes>
 </document>

@@ -10,6 +10,8 @@
 #import <GameController/GameController.h>
 #import <CloudKit/CloudKit.h>
 #include "driver.h"
+#import "HeaderView.h"
+#import "SearchVC.h"
 
 #if TARGET_OS_TV
 #define USE_TABLEVIEW 0
@@ -144,24 +146,35 @@ GameScene *myObjectSelf;
     runState = 1;
 }
 
--(NSString *)tableView:(UITableView *)tableView titleForHeaderInSection:(NSInteger)section
-{
-    static NSString *string = nil;
-    if (string == nil)
-    {
-        string = [NSString stringWithFormat:@"MAME4apple %s 2016 by Les Bird (www.lesbird.com)", VERSION_STRING];
+//-(NSString *)tableView:(UITableView *)tableView titleForHeaderInSection:(NSInteger)section
+//{
+//    static NSString *string = nil;
+//    if (string == nil)
+//    {
+//        string = [NSString stringWithFormat:@"MAME4apple %s 2016 by Les Bird (www.lesbird.com)", VERSION_STRING];
+//    }
+//    return string;
+//}
+
+- (UIView *)tableView:(UITableView *)tableView viewForHeaderInSection:(NSInteger)section {
+    HeaderView *view = (HeaderView *)[tableView dequeueReusableHeaderFooterViewWithIdentifier:[HeaderView sectionIndentifier]];
+    
+    if (view == nil) {
+        view = [HeaderView nibView];
     }
-    return string;
+    
+    [view configure:[NSString stringWithFormat:@"MAME4apple %s 2016 by Les Bird (www.lesbird.com)", VERSION_STRING] actionSearch:^{
+        UIViewController *vc = [[[self view] window] rootViewController];
+        
+        [vc performSegueWithIdentifier:@"segueSearch" sender:vc];
+    }];
+    
+    return view;
 }
 
 -(NSString *)tableView:(UITableView *)tableView titleForFooterInSection:(NSInteger)section
 {
-    static NSString *string = nil;
-    if (string == nil)
-    {
-        string = [NSString stringWithFormat:@"%d games", gameDriverROMCount];
-    }
-    return string;
+    return [NSString stringWithFormat:@"%d games", gameDriverROMCount];
 }
 
 -(NSArray *)sectionIndexTitlesForTableView:(UITableView *)tableView
@@ -384,7 +397,7 @@ int list_step = 40; // gap between lines in game list
 #else
     gameCountLabel = [SKLabelNode labelNodeWithText:@""];
     gameCountLabel.name = @"gamecountlabel";
-    gameCountLabel.position = CGPointMake(-(width / 2) + 48, -(height / 2) + 32);
+    gameCountLabel.position = CGPointMake(-(width / 2) + 16, -(height / 2) + 0);
     gameCountLabel.horizontalAlignmentMode = SKLabelHorizontalAlignmentModeLeft;
     gameCountLabel.fontName = @"Courier-Bold";
     gameCountLabel.fontSize = 16;
@@ -392,7 +405,7 @@ int list_step = 40; // gap between lines in game list
     
     versionLabel = [SKLabelNode labelNodeWithText:[NSString stringWithFormat:@"MAME4apple %s 2016 by Les Bird (www.lesbird.com)", VERSION_STRING]];
     versionLabel.name = @"versionlabel";
-    versionLabel.position = CGPointMake(0, -(height / 2) + 32);
+    versionLabel.position = CGPointMake(0, -(height / 2) + 16);
     versionLabel.fontName = @"Courier-Bold";
     versionLabel.fontSize = 20;
     [gameListNode addChild:versionLabel];
@@ -420,7 +433,7 @@ int list_step = 40; // gap between lines in game list
     char *argv[] = {""};
     parse_cmdline(0, argv, game_index, nil);
     
-    [self checkAvailableROMs];
+    [self checkAvailableROMs:NO];
     
 #if USE_TABLEVIEW
     [gameDriverTableView reloadData];
@@ -428,20 +441,13 @@ int list_step = 40; // gap between lines in game list
     [self updateGameList];
 #endif
     
-    //[self initInfoButton];
+    [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(updateRoms) name:@"UPDATE_ROMSET" object:nil];
     
     myObjectSelf = self;
 }
 
--(void)initInfoButton
-{
-    //UIButton *infoButton = [UIButton buttonWithType:UIButtonTypeInfoLight];
-    //CGRect buttonRect = infoButton.frame;
-    //buttonRect.origin.x = buttonRect.size.width;
-    //buttonRect.origin.y = buttonRect.size.height - 12;
-    //[infoButton setFrame:buttonRect];
-    
-    //[self.view addSubview:infoButton];
+- (void)dealloc {
+    [[NSNotificationCenter defaultCenter] removeObserver:self];
 }
 
 -(void)initAndSortDriverArray
@@ -484,14 +490,24 @@ int list_step = 40; // gap between lines in game list
 
 extern const char *getROMpath();
 
--(void)checkAvailableROMs
+- (void)updateRoms {
+    [self checkAvailableROMs:YES];
+    selected_game = -1;
+    
+    dispatch_async(dispatch_get_main_queue(), ^{
+        [gameDriverTableView reloadData];
+    });
+}
+
+-(void)checkAvailableROMs:(BOOL)update
 {
     int count = 0;
+    NSString *romsPath = [NSHomeDirectory() stringByAppendingPathComponent:@"Documents/roms"];
     
     BOOL bIsDir;
     for (int i = 0; i < gameDriverCount; i++)
     {
-        NSString *path = [NSString stringWithUTF8String:getROMpath()];
+        NSString *path = [NSString stringWithUTF8String:((update == NO) ? getROMpath() : [romsPath cStringUsingEncoding:NSUTF8StringEncoding])];
         path = [path stringByAppendingPathComponent:[NSString stringWithUTF8String:gameDriverList[i].gameDriver->name]];
         path = [path stringByAppendingPathExtension:@"zip"];
         if ([[NSFileManager defaultManager] fileExistsAtPath:path isDirectory:&bIsDir])
@@ -938,8 +954,8 @@ void fillBufferData(UINT32 *buf, int width, int height)
 #endif
     
 #if !USE_TABLEVIEW
-    gameCountLabel.position = CGPointMake(-x + 48, -y + 32);
-    versionLabel.position = CGPointMake(0, -y + 32);
+    gameCountLabel.position = CGPointMake(-x + 16, -y + 16);
+    versionLabel.position = CGPointMake(0, -y + 16);
 #endif
 }
 
@@ -1469,9 +1485,8 @@ CGPoint startTouchPos;
 -(void)updateGameList
 {
 #if !USE_TABLEVIEW
-    int o = selected_game;
     int center = gameListCount / 2;
-    int top = center - o;
+    int top = center - selected_game;
     for (int i = 0; i < gameListCount; i++)
     {
         if (i < top)
@@ -1480,7 +1495,7 @@ CGPoint startTouchPos;
             gameListDesc[i].text = @"";
             continue;
         }
-        int n = o + i - center;
+        int n = selected_game + i - center;
         if (n < gameDriverROMCount)
         {
             struct GameDriver *game_driver = gameDriverROMList[n].gameDriver;
@@ -1495,7 +1510,7 @@ CGPoint startTouchPos;
             }
             else
             {
-                gameList[i].fontColor = [UIColor brownColor];
+                gameList[i].fontColor = [UIColor grayColor];
             }
             gameListDesc[i].text = [NSString stringWithFormat:@"%s %s", game_driver->year, game_driver->manufacturer];
         }
