@@ -2897,7 +2897,7 @@ INLINE void bmove( void )
 	}
 }
 
-INLINE void move( void ) __attribute__ ((overloadable))
+INLINE void move( void ) // __attribute__ ((overloadable))
 {
 	UINT8	t;
 

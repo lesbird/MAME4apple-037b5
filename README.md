@@ -12,7 +12,7 @@ Based on the original MAME 0.37b5 source code as downloaded from the MAMEDev web
 
 Using SpriteKit allows for porting to all iOS devices including the AppleTV and tvOS.
 
-The project is 64-bit compliant and has been tested on iPhone 6s, iPad Air 2, iPad Pro 13 and Apple TV 4th Gen.
+The project is 64-bit compatible and has been tested on iPhone 6s, iPad Air 2, iPad Pro 10.5, 11 & 13 and Apple TV 4th Gen.
 
 Front end for iOS devices is based on UITableView. For tvOS it is a scrolling list of games controlled via an MFi controller.
 
