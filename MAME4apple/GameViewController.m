@@ -8,23 +8,43 @@
 
 #import "GameViewController.h"
 #import "GameScene.h"
+#import <TargetConditionals.h>
+#if !TARGET_OS_TV
+#import "MameRenderer.h"
+#import "TouchControlsView.h"
+#endif
 
 @implementation GameViewController
 
 - (void)viewDidLoad {
     [super viewDidLoad];
 
+    SKView *skView = (SKView *)self.view;
+
+#if !TARGET_OS_TV
+    // Metal renderer for the in-game frame. Sits above the SpriteKit content
+    // (the black background) but below the front-end table and touch controls,
+    // hidden until a game starts.
+    MameRenderer *renderer = [[MameRenderer alloc] initWithFrame:skView.bounds];
+    [MameRenderer setShared:renderer];
+    [skView insertSubview:renderer.view atIndex:0];
+
+    // On-screen touch controls, above the Metal view but below the front-end
+    // table. Hidden until a game runs without a hardware controller.
+    TouchControlsView *touch = [[TouchControlsView alloc] initWithFrame:skView.bounds];
+    touch.autoresizingMask = UIViewAutoresizingFlexibleWidth | UIViewAutoresizingFlexibleHeight;
+    touch.hidden = YES;
+    touch.userInteractionEnabled = NO;
+    [TouchControlsView setShared:touch];
+    [skView insertSubview:touch atIndex:1];
+#endif
+
     // Load the SKScene from 'GameScene.sks'
     GameScene *scene = (GameScene *)[SKScene nodeWithFileNamed:@"GameScene"];
-    
-    // Set the scale mode to scale to fit the window
-    //scene.scaleMode = SKSceneScaleModeAspectFill;
-    
-    SKView *skView = (SKView *)self.view;
-    
+
     // Present the scene
     [skView presentScene:scene];
-    
+
     //skView.showsFPS = YES;
     //skView.showsNodeCount = YES;
 }

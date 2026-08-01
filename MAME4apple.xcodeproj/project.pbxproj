@@ -2122,9 +2122,15 @@
 		21B98E461DBD238600376467 /* roms.bundle in Resources */ = {isa = PBXBuildFile; fileRef = 21B98E451DBD238600376467 /* roms.bundle */; };
 		21FC930F1DAAD37B005EB49B /* 1024x1024.jpg in Resources */ = {isa = PBXBuildFile; fileRef = 21FC930E1DAAD37B005EB49B /* 1024x1024.jpg */; };
 		21FCE46A1DB3CF040057162E /* iCadeReaderView.m in Sources */ = {isa = PBXBuildFile; fileRef = 21FCE4681DB3CF040057162E /* iCadeReaderView.m */; };
+		51523BE95C5890DE50604E48 /* MetalKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 65CD935063E7ACD793939211 /* MetalKit.framework */; };
+		90AA12BE5E1552B79F0CDDF4 /* Metal.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = D41727224A0A92A4DE186CC2 /* Metal.framework */; };
+		AF3C68DF30AC517424433A7A /* AVFoundation.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = A79A7D4E47CA0B22C7880649 /* AVFoundation.framework */; };
+		C29653C868A16DF06CF9F452 /* TouchControlsView.m in Sources */ = {isa = PBXBuildFile; fileRef = 195B09D673315284FA403A2D /* TouchControlsView.m */; };
+		DA4FA4169198777E22F618C9 /* MameRenderer.mm in Sources */ = {isa = PBXBuildFile; fileRef = D502518B11B03B869CE90A97 /* MameRenderer.mm */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
+		195B09D673315284FA403A2D /* TouchControlsView.m */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.c.objc; path = TouchControlsView.m; sourceTree = "<group>"; };
 		213B10611DA67C6100DC1F1F /* MAME4apple.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = MAME4apple.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		213B10651DA67C6100DC1F1F /* main.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = main.m; sourceTree = "<group>"; };
 		213B10671DA67C6100DC1F1F /* AppDelegate.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = AppDelegate.h; sourceTree = "<group>"; };
@@ -3515,6 +3521,14 @@
 		21FCE4671DB3CF040057162E /* iCadeReaderView.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = iCadeReaderView.h; sourceTree = "<group>"; };
 		21FCE4681DB3CF040057162E /* iCadeReaderView.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = iCadeReaderView.m; sourceTree = "<group>"; };
 		21FCE4691DB3CF040057162E /* iCadeState.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = iCadeState.h; sourceTree = "<group>"; };
+		65CD935063E7ACD793939211 /* MetalKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = MetalKit.framework; path = System/Library/Frameworks/MetalKit.framework; sourceTree = SDKROOT; };
+		931D97AFC3361AD88D85B56C /* MameShaders.metal */ = {isa = PBXFileReference; includeInIndex = 1; path = MameShaders.metal; sourceTree = "<group>"; };
+		A79A7D4E47CA0B22C7880649 /* AVFoundation.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = AVFoundation.framework; path = System/Library/Frameworks/AVFoundation.framework; sourceTree = SDKROOT; };
+		B9444F4554DEBCCA4332FC1D /* MameShared.h */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.c.h; path = MameShared.h; sourceTree = "<group>"; };
+		C7034FC74713021BE1BCEFF4 /* TouchControlsView.h */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.c.h; path = TouchControlsView.h; sourceTree = "<group>"; };
+		CE0671154063AB72A14C9B47 /* MameRenderer.h */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.c.h; path = MameRenderer.h; sourceTree = "<group>"; };
+		D41727224A0A92A4DE186CC2 /* Metal.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Metal.framework; path = System/Library/Frameworks/Metal.framework; sourceTree = SDKROOT; };
+		D502518B11B03B869CE90A97 /* MameRenderer.mm */ = {isa = PBXFileReference; includeInIndex = 1; path = MameRenderer.mm; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -3524,6 +3538,9 @@
 			files = (
 				213B10861DA67C9B00DC1F1F /* libz.tbd in Frameworks */,
 				213B10841DA67C8800DC1F1F /* GameController.framework in Frameworks */,
+				51523BE95C5890DE50604E48 /* MetalKit.framework in Frameworks */,
+				90AA12BE5E1552B79F0CDDF4 /* Metal.framework in Frameworks */,
+				AF3C68DF30AC517424433A7A /* AVFoundation.framework in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -3597,6 +3614,9 @@
 				21626FC41DB29EBA005AA8E6 /* libz.tbd */,
 				213B10851DA67C9B00DC1F1F /* libz.tbd */,
 				213B10831DA67C8800DC1F1F /* GameController.framework */,
+				65CD935063E7ACD793939211 /* MetalKit.framework */,
+				D41727224A0A92A4DE186CC2 /* Metal.framework */,
+				A79A7D4E47CA0B22C7880649 /* AVFoundation.framework */,
 			);
 			name = Frameworks;
 			sourceTree = "<group>";
@@ -5230,6 +5250,12 @@
 				21527F031DA7ED3A00BB24F8 /* iOS_input.m */,
 				21527F041DA7ED3A00BB24F8 /* iOS_sound.m */,
 				21527F051DA7ED3A00BB24F8 /* iOS_video.m */,
+				B9444F4554DEBCCA4332FC1D /* MameShared.h */,
+				CE0671154063AB72A14C9B47 /* MameRenderer.h */,
+				D502518B11B03B869CE90A97 /* MameRenderer.mm */,
+				931D97AFC3361AD88D85B56C /* MameShaders.metal */,
+				C7034FC74713021BE1BCEFF4 /* TouchControlsView.h */,
+				195B09D673315284FA403A2D /* TouchControlsView.m */,
 			);
 			path = apple;
 			sourceTree = "<group>";
@@ -6439,6 +6465,8 @@
 				213B178B1DA67D6700DC1F1F /* snk.c in Sources */,
 				213B1A481DA67D6900DC1F1F /* wc90b.c in Sources */,
 				213B183B1DA67D6700DC1F1F /* stactics.c in Sources */,
+				DA4FA4169198777E22F618C9 /* MameRenderer.mm in Sources */,
+				C29653C868A16DF06CF9F452 /* TouchControlsView.m in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -7569,7 +7597,7 @@
 				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
 				GCC_WARN_UNUSED_FUNCTION = YES;
 				GCC_WARN_UNUSED_VARIABLE = YES;
-				IPHONEOS_DEPLOYMENT_TARGET = 10.0;
+				IPHONEOS_DEPLOYMENT_TARGET = 15.0;
 				MTL_ENABLE_DEBUG_INFO = YES;
 				ONLY_ACTIVE_ARCH = YES;
 				SDKROOT = iphoneos;
@@ -7611,7 +7639,7 @@
 				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
 				GCC_WARN_UNUSED_FUNCTION = YES;
 				GCC_WARN_UNUSED_VARIABLE = YES;
-				IPHONEOS_DEPLOYMENT_TARGET = 10.0;
+				IPHONEOS_DEPLOYMENT_TARGET = 15.0;
 				MTL_ENABLE_DEBUG_INFO = NO;
 				SDKROOT = iphoneos;
 				TARGETED_DEVICE_FAMILY = "1,2";

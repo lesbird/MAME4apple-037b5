@@ -1,6 +1,34 @@
 #include <Foundation/Foundation.h>
 #include <GameController/GameController.h>
 #include "driver.h"
+#include "MameShared.h"
+#include <os/lock.h>
+
+// ---------------------------------------------------------------------------
+// Controller snapshot. GameController is polled on the main thread
+// (mame_input_poll_controllers_main) into this snapshot; the emulator thread
+// only ever reads the snapshot, never GameController itself. This removes the
+// old cross-thread GameController access in osd_poll_joysticks/osd_analogjoy_read.
+// ---------------------------------------------------------------------------
+#define MAX_PADS 4
+
+typedef struct
+{
+    int up, down, left, right;
+    int a, b, x, y;
+    int l1, r1, l2, r2;
+    int lx, ly, rx, ry;   // analog, scaled to -128..128
+    int isExtended;
+} PadState;
+
+typedef struct
+{
+    int count;
+    PadState pad[MAX_PADS];
+} InputSnapshot;
+
+static os_unfair_lock s_input_lock = OS_UNFAIR_LOCK_INIT;
+static InputSnapshot  s_snapshot;         // written on main, read on emu thread
 
 int use_mouse;
 int joystick;
@@ -336,105 +364,118 @@ void player_start_pressed(int playerNum)
 BOOL buttonState = FALSE;
 extern BOOL iCadeDetected; // this is handled in GameScene.m
 
+// Poll GameController on the MAIN thread and store a snapshot. Also mirror the
+// analog sticks into the joyAnalog* globals used below. Modern controllers all
+// expose extendedGamepad; the Siri remote (microGamepad only) is skipped.
+void mame_input_poll_controllers_main(void)
+{
+    InputSnapshot snap;
+    memset(&snap, 0, sizeof(snap));
+
+    NSArray<GCController *> *controllerList = [GCController controllers];
+    int n = 0;
+    for (GCController *controller in controllerList)
+    {
+        if (controller == nil) continue;
+        GCExtendedGamepad *eg = controller.extendedGamepad;
+        if (eg == nil) continue;   // skip non-gamepad devices (e.g. Siri remote)
+        if (controller.playerIndex == GCControllerPlayerIndexUnset)
+            controller.playerIndex = (GCControllerPlayerIndex)n;
+
+        PadState *pd = &snap.pad[n];
+        pd->isExtended = 1;
+        pd->up    = eg.dpad.up.pressed;
+        pd->down  = eg.dpad.down.pressed;
+        pd->left  = eg.dpad.left.pressed;
+        pd->right = eg.dpad.right.pressed;
+        pd->a = eg.buttonA.pressed;
+        pd->b = eg.buttonB.pressed;
+        pd->x = eg.buttonX.pressed;
+        pd->y = eg.buttonY.pressed;
+        pd->l1 = eg.leftShoulder.pressed;
+        pd->r1 = eg.rightShoulder.pressed;
+        pd->l2 = eg.leftTrigger.pressed;
+        pd->r2 = eg.rightTrigger.pressed;
+        pd->lx = (int)(eg.leftThumbstick.xAxis.value  * 128.0f);
+        pd->ly = (int)(eg.leftThumbstick.yAxis.value  * 128.0f);
+        pd->rx = (int)(eg.rightThumbstick.xAxis.value * 128.0f);
+        pd->ry = (int)(eg.rightThumbstick.yAxis.value * 128.0f);
+
+        if (++n >= MAX_PADS) break;
+    }
+    snap.count = n;
+
+    os_unfair_lock_lock(&s_input_lock);
+    s_snapshot = snap;
+    // mirror analog sticks into the globals used by the mapping below
+    for (int i = 0; i < 2; i++)
+    {
+        if (i < n)
+        {
+            joyAnalogLeftX[i]  = snap.pad[i].lx;
+            joyAnalogLeftY[i]  = snap.pad[i].ly;
+            joyAnalogRightX[i] = snap.pad[i].rx;
+            joyAnalogRightY[i] = snap.pad[i].ry;
+        }
+        else
+        {
+            joyAnalogLeftX[i] = joyAnalogLeftY[i] = 0;
+            joyAnalogRightX[i] = joyAnalogRightY[i] = 0;
+        }
+    }
+    os_unfair_lock_unlock(&s_input_lock);
+}
+
+int mame_input_gamepad_count(void)
+{
+    os_unfair_lock_lock(&s_input_lock);
+    int c = s_snapshot.count;
+    os_unfair_lock_unlock(&s_input_lock);
+    return c;
+}
+
 void update_key_array()
 {
     for (int i = 0; i < KEY_MAX; i++)
     {
         key[i] = 0;
     }
-    
+
+    // read the snapshot produced on the main thread
+    InputSnapshot snap;
+    os_unfair_lock_lock(&s_input_lock);
+    snap = s_snapshot;
+    os_unfair_lock_unlock(&s_input_lock);
+
     BOOL mfiDetected = FALSE;
-    NSArray *controllerList = [GCController controllers];
-    if (controllerList != nil && controllerList.count > 0)
+    if (snap.count > 0)
     {
-        int playerNum = 0;
         if (buttonState != FALSE)
         {
             OnScreenButtonsEnable(FALSE);
         }
         mfiDetected = TRUE;
-        for (int i = 0; i < controllerList.count; i++)
+        for (int p = 0; p < snap.count; p++)
         {
-            GCController *controller = (GCController *)[controllerList objectAtIndex:i];
-            if (controller != nil)
+            PadState *pd = &snap.pad[p];
+            if (pd->y) // p1 button 3
             {
-                if (controller.gamepad != nil)
-                {
-                    if (controller.gamepad.buttonY.pressed) // p1 button 3
-                    {
-                        if (controller.gamepad.rightShoulder.pressed)
-                        {
-                            key[KEY_ESC] = 1;
-                        }
-                        else
-                        {
-                            button_3_pressed(playerNum);
-                        }
-                    }
-                    if (controller.gamepad.leftShoulder.pressed)
-                    {
-                        player_coin_pressed(playerNum);
-                    }
-                    if (controller.gamepad.rightShoulder.pressed)
-                    {
-                        player_start_pressed(playerNum);
-                    }
-                    if (controller.gamepad.dpad.up.pressed)
-                    {
-                        button_up_pressed(playerNum);
-                    }
-                    if (controller.gamepad.dpad.right.pressed)
-                    {
-                        button_right_pressed(playerNum);
-                    }
-                    if (controller.gamepad.dpad.down.pressed)
-                    {
-                        button_down_pressed(playerNum);
-                    }
-                    if (controller.gamepad.dpad.left.pressed)
-                    {
-                        button_left_pressed(playerNum);
-                    }
-                    if (controller.gamepad.buttonA.pressed) // p1 button 1
-                    {
-                        button_1_pressed(playerNum);
-                    }
-                    if (controller.gamepad.buttonX.pressed) // p1 button 2
-                    {
-                        button_2_pressed(playerNum);
-                    }
-                    if (controller.gamepad.buttonB.pressed) // p1 button 4 (also back button on Apple TV)
-                    {
-                        button_4_pressed(playerNum);
-                    }
-                }
-                if (controller.extendedGamepad != nil)
-                {
-                    if (controller.extendedGamepad.leftTrigger.pressed)
-                    {
-                        //key[KEY_LSHIFT] = 1;
-                    }
-                    if (controller.extendedGamepad.leftTrigger.pressed)
-                    {
-                        if (controller.extendedGamepad.rightTrigger.pressed)
-                        {
-                            //key[KEY_TAB] = 0;
-                        }
-                        else
-                        {
-                            key[KEY_TAB] = 1;
-                        }
-                    }
-                    if (controller.extendedGamepad.rightTrigger.pressed)
-                    {
-                        key[KEY_F11] = 1;
-                    }
-                }
-                // this check will skip over the siri remote
-                if (controller.gamepad != nil || controller.extendedGamepad != nil)
-                {
-                    playerNum++;
-                }
+                if (pd->r1) key[KEY_ESC] = 1;
+                else        button_3_pressed(p);
+            }
+            if (pd->l1) player_coin_pressed(p);
+            if (pd->r1) player_start_pressed(p);
+            if (pd->up)    button_up_pressed(p);
+            if (pd->right) button_right_pressed(p);
+            if (pd->down)  button_down_pressed(p);
+            if (pd->left)  button_left_pressed(p);
+            if (pd->a) button_1_pressed(p);   // p1 button 1
+            if (pd->x) button_2_pressed(p);   // p1 button 2
+            if (pd->b) button_4_pressed(p);   // p1 button 4
+            if (pd->isExtended)
+            {
+                if (pd->l2 && !pd->r2) key[KEY_TAB] = 1;
+                if (pd->r2)            key[KEY_F11] = 1;
             }
         }
     }
@@ -687,46 +728,17 @@ void osd_trak_read(int player,int *deltax,int *deltay)
 }
 
 /* return values in the range -128 .. 128 (yes, 128, not 127) */
+/* Reads the joyAnalog* globals filled by mame_input_poll_controllers_main on
+   the main thread (no GameController access from the emulator thread). */
 void osd_analogjoy_read(int player,int *analog_x, int *analog_y)
 {
-    if (player == 0 || player == 1)
-    {
-        NSArray *controllerList = [GCController controllers];
-        if (controllerList.count > 0)
-        {
-            int n = 0;
-            for (int i = 0; i < controllerList.count; i++)
-            {
-                GCController *controller = (GCController *)[controllerList objectAtIndex:i];
-                if (controller != nil)
-                {
-                    if (controller.extendedGamepad != nil)
-                    {
-                        int playerId = n++;
-                        float x0 = controller.extendedGamepad.leftThumbstick.xAxis.value;
-                        float y0 = controller.extendedGamepad.leftThumbstick.yAxis.value;
-                        float x1 = controller.extendedGamepad.rightThumbstick.xAxis.value;
-                        float y1 = controller.extendedGamepad.rightThumbstick.yAxis.value;
-                        joyAnalogLeftX[playerId] = (int)(x0 * 128.0f);
-                        joyAnalogLeftY[playerId] = (int)(y0 * 128.0f);
-                        joyAnalogRightX[playerId] = (int)(x1 * 128.0f);
-                        joyAnalogRightY[playerId] = (int)(y1 * 128.0f);
-                        //NSLog(@"joyAnalog left=%d,%d right=%d,%d", joyAnalogLeftX[0], joyAnalogLeftY[0], joyAnalogRightX[0], joyAnalogRightY[0]);
-                        //NSLog(@"joyAnalog left=%f,%f right=%f,%f", x0, y0, x1, y1);
-                    }
-                }
-            }
-        }
-    }
     if (player == 0)
     {
-        //NSLog(@"joyAnalogLeft=%d,%d", joyAnalogLeftX[0], joyAnalogLeftY[0]);
         *analog_x = joyAnalogLeftX[0] != 0 ? joyAnalogLeftX[0] : joyAnalogLeftX[1];
         *analog_y = joyAnalogLeftY[0] != 0 ? joyAnalogLeftY[0] : joyAnalogLeftY[1];
     }
     else if (player == 1)
     {
-        //NSLog(@"joyAnalogRight=%d,%d", joyAnalogRightX[0], joyAnalogRightY[0]);
         *analog_x = joyAnalogRightX[0] != 0 ? joyAnalogRightX[0] : joyAnalogRightX[1];
         *analog_y = joyAnalogRightY[0] != 0 ? joyAnalogRightY[0] : joyAnalogRightY[1];
     }

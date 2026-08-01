@@ -8,10 +8,47 @@
 #import <Foundation/Foundation.h>
 #include "driver.h"
 #include "dirty.h"
+#include "MameShared.h"
 #include <mach/mach_time.h>
+#include <pthread.h>
 
 UINT32 gfx_depth;
 UINT32 gfx_fps;
+
+// ---------------------------------------------------------------------------
+// Emulation pause primitive (see MameShared.h). Driven by app lifecycle
+// (AppDelegate) so the emulator thread parks on a condition variable at a frame
+// boundary while backgrounded instead of spinning.
+// ---------------------------------------------------------------------------
+static pthread_mutex_t s_pause_mtx = PTHREAD_MUTEX_INITIALIZER;
+static pthread_cond_t  s_pause_cond = PTHREAD_COND_INITIALIZER;
+static int s_paused = 0;
+static int s_pacing_resync = 0;   // request the pacer to resync its deadline
+
+void mame_pause_set(int paused)
+{
+    pthread_mutex_lock(&s_pause_mtx);
+    s_paused = paused;
+    if (!paused)
+    {
+        s_pacing_resync = 1;      // avoid a catch-up burst on resume
+        pthread_cond_broadcast(&s_pause_cond);
+    }
+    pthread_mutex_unlock(&s_pause_mtx);
+}
+
+int mame_pause_is_paused(void)
+{
+    return s_paused;
+}
+
+void mame_pause_wait_if_needed(void)
+{
+    pthread_mutex_lock(&s_pause_mtx);
+    while (s_paused)
+        pthread_cond_wait(&s_pause_cond, &s_pause_mtx);
+    pthread_mutex_unlock(&s_pause_mtx);
+}
 
 static UINT8 *current_palette;
 
@@ -323,34 +360,46 @@ TICKER curr;
 
 void vsync()
 {
-    //while (game_bitmap_update != 0)
-    //{
-    //}
 }
 
+// Precise, CPU-yielding frame pacing using an absolute mach deadline. Replaces
+// the old millisecond busy-wait spin loop (which burned a core and battery).
 void osd_update_video_and_audio(struct osd_bitmap *game_bitmap)
 {
-    static TICKER prev;
-    
-    struct osd_bitmap *bitmap = game_bitmap;
+    static mach_timebase_info_data_t s_tb;
+    static uint64_t s_next_deadline = 0;
 
-    curr = ticker();
-    TICKER target = prev + (TICKS_PER_SEC / gfx_fps);
-    
-    do
-    {
-        curr = ticker();
-    } while (curr < target);
-    
-    prev = curr;
-    
+    // Park here (not spin) while the app is backgrounded.
+    mame_pause_wait_if_needed();
+
     profiler_mark(PROFILER_BLIT);
-
-    ios_blit(bitmap);
-    
+    ios_blit(game_bitmap);
     profiler_mark(PROFILER_END);
-    
+
     game_bitmap_update = 1;
+
+    if (s_tb.denom == 0)
+        mach_timebase_info(&s_tb);
+
+    int fps = (gfx_fps > 0) ? gfx_fps : 60;
+    double ns_per_frame = 1.0e9 / (double)fps;
+    uint64_t ticks_per_frame = (uint64_t)(ns_per_frame * s_tb.denom / s_tb.numer);
+
+    uint64_t now = mach_absolute_time();
+
+    if (s_pacing_resync || s_next_deadline == 0 ||
+        now > s_next_deadline + ticks_per_frame * 4)
+    {
+        // First frame, a stall, or a resume from pause: resync the schedule.
+        s_pacing_resync = 0;
+        s_next_deadline = now + ticks_per_frame;
+    }
+    else
+    {
+        s_next_deadline += ticks_per_frame;
+        if (now < s_next_deadline)
+            mach_wait_until(s_next_deadline);
+    }
 }
 
 dirtygrid grid1;

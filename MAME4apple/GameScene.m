@@ -10,6 +10,7 @@
 #import <GameController/GameController.h>
 #import <CloudKit/CloudKit.h>
 #include "driver.h"
+#include "MameShared.h"
 
 #if TARGET_OS_TV
 #define USE_TABLEVIEW 0
@@ -129,7 +130,9 @@ GameScene *myObjectSelf;
     }
     else
     {
-        cell.textLabel.textColor = [UIColor blackColor];
+        // Adaptive so the title is readable in both light and dark appearance
+        // (hardcoded black was invisible on the dark table background).
+        cell.textLabel.textColor = [UIColor labelColor];
     }
     cell.textLabel.text = [NSString stringWithUTF8String:gameDriver->gameDriver->description];
     cell.detailTextLabel.text = [NSString stringWithFormat:@"%s %s", gameDriver->gameDriver->year, gameDriver->gameDriver->manufacturer];
@@ -527,6 +530,9 @@ extern const char *getROMpath();
 
 -(void)initOnScreenJoystick
 {
+#if !TARGET_OS_TV
+    return;   // iOS uses TouchControlsView instead of the SpriteKit joystick
+#endif
 #if USE_TOUCH_CONTROLS
     // left side joystick
     onscreenJoystickLeftAnchor = CGPointMake(-256, -256);
@@ -548,6 +554,9 @@ extern const char *getROMpath();
 
 -(void)initOnScreenButtons
 {
+#if !TARGET_OS_TV
+    return;   // iOS uses TouchControlsView instead of these UIButtons
+#endif
 #if USE_TOUCH_CONTROLS
     int buttonWidth = 100;
     int buttonHeight = 90;
@@ -720,7 +729,14 @@ int sortByManufacturer(const void *game1, const void *game2)
 // C function that calls into Objective-C function to allocate a frame buffer
 void objc_alloc_framebuffer(int width, int height, int depth, int attributes, int orientation)
 {
+    gameScreenWidth = width;
+    gameScreenHeight = height;
+#if TARGET_OS_TV
     [myObjectSelf alloc_frame_buffer:width :height :depth :attributes :orientation];
+#else
+    // iOS: hand the game size to the Metal renderer (shows the MTKView).
+    mame_renderer_configure(width, height);
+#endif
 }
 
 SKSpriteNode *testSpriteNode;
@@ -821,10 +837,15 @@ void objc_flip()
 // free the game frame buffer
 -(void)free_frame_buffer
 {
+#if TARGET_OS_TV
     osd_clearbitmap(screen->bitmap);
     game_bitmap_update = 1; // force a texture update
-    
     frameBufferNode.hidden = YES;
+#else
+    // iOS: stop and hide the Metal view + touch controls, back to the front end.
+    mame_renderer_hide();
+    mame_touch_set_visible(0);
+#endif
 }
 
 // fill the frame buffer with debug colors
@@ -1021,10 +1042,13 @@ void OnScreenButtonsEnable(BOOL on)
 
 -(void)handleOnscreenButtonsEnable:(BOOL)on
 {
-#if USE_TOUCH_CONTROLS
+#if !TARGET_OS_TV
+    // iOS: show/hide the TouchControlsView overlay.
+    mame_touch_set_visible(on ? 1 : 0);
+    buttonState = on;
+#elif USE_TOUCH_CONTROLS
     BOOL hidden = (on ? NO : YES);
     {
-        NSLog(@"handleOnscreenButtonsEnable:%d", on);
         [buttonCoin setHidden:hidden];
         [buttonStart setHidden:hidden];
         [buttonExit setHidden:hidden];
@@ -1237,6 +1261,10 @@ CGPoint startTouchPos;
 // called 60 times/sec
 -(void)update:(CFTimeInterval)currentTime
 {
+    // Snapshot hardware controllers on the main thread; the emulator thread
+    // reads only the snapshot (see iOS_input.m).
+    mame_input_poll_controllers_main();
+
     deltaTime = currentTime - prevTime;
     if (!CGSizeEqualToSize(viewSize, self.view.bounds.size))
     {
@@ -1255,8 +1283,10 @@ CGPoint startTouchPos;
         [NSThread detachNewThreadSelector:@selector(runGameThread) toTarget:self withObject:nil];
         runState = 2;
     }
+#if TARGET_OS_TV
+    // tvOS still presents via SpriteKit's SKMutableTexture. On iOS the Metal
+    // renderer (MameRenderer) drives the display directly and this copy is gone.
 #if !USE_RENDERTHREAD
-    //if (runState == 2) // rendering the frames
     {
 #if !TRIPLE_BUFFER
         if (game_bitmap_update == 1)
@@ -1274,6 +1304,7 @@ CGPoint startTouchPos;
             }
         }
     }
+#endif
 #endif
     if (runState == 3) // clean up and return to front end
     {
